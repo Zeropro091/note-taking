@@ -1,0 +1,14 @@
+{
+  "name": "note-taking-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Note Taking App - integrate your personal knowledge base with Claude Code",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "mcp": "^1.0.0",
+    "node-fetch": "^2.7.0"
+  }
+}
