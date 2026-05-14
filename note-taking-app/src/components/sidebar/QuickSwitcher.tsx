@@ -2,8 +2,8 @@
 
 // Quick switcher for fuzzy searching notes
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, FileText, Clock } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Search, FileText } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import type { Note } from '@/types/notes';
