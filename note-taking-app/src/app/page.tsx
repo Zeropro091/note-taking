@@ -28,14 +28,14 @@ const FileTree = dynamic(() => import('@/components/sidebar/FileTree'), { ssr: f
 const NoteGroups = dynamic(() => import('@/components/sidebar/NoteGroups'), { ssr: false });
 const QuickSwitcher = dynamic(() => import('@/components/sidebar/QuickSwitcher'), { ssr: false });
 const GraphView = dynamic(() => import('@/components/graph/GraphView'), { ssr: false });
+const PARABoard = dynamic(() => import('@/components/board/PARABoard'), { ssr: false });
 const BacklinksPanel = dynamic(() => import('@/components/panels/BacklinksPanel'), { ssr: false });
 const OutlinePanel = dynamic(() => import('@/components/panels/OutlinePanel'), { ssr: false });
 const TagsPanel = dynamic(() => import('@/components/panels/TagsPanel'), { ssr: false });
 
-// Extract useQuickSwitcher from the QuickSwitcher component
-const { useQuickSwitcher } = require('@/components/sidebar/QuickSwitcher');
+import { useQuickSwitcher } from '@/components/sidebar/QuickSwitcher';
 
-function getTabClassName(active: boolean, base: string) {
+function getTabClassName(active: boolean) {
   return cn(
     'flex-1 px-3 py-2 text-xs font-medium uppercase tracking-wide',
     active ? 'bg-zinc-800 text-zinc-300' : 'text-zinc-500 hover:text-zinc-400'
@@ -60,7 +60,7 @@ export default function Home() {
   const [activeRightTab, setActiveRightTab] = useState<'backlinks' | 'outline' | 'tags'>('backlinks');
   const [sidebarTabsCollapsed, setSidebarTabsCollapsed] = useState(false);
   const [rightTabsCollapsed, setRightTabsCollapsed] = useState(false);
-  const [showGraph, setShowGraph] = useState(false);
+  const [mainView, setMainView] = useState<'editor' | 'graph' | 'board'>('editor');
   const quickSwitcher = useQuickSwitcher();
 
   const loadData = useCallback(async () => {
@@ -142,22 +142,25 @@ export default function Home() {
         setCurrentNote(null);
         setBacklinks([]);
       }
-    } catch (error) {
+    } catch {
       setCurrentNote(null);
       setBacklinks([]);
     }
   }, [noteId]);
 
   useEffect(() => {
-    loadData();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadData();
   }, [loadData]);
 
   useEffect(() => {
-    loadFileTree();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadFileTree();
   }, [loadFileTree]);
 
   useEffect(() => {
-    loadCurrentNote();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadCurrentNote();
   }, [loadCurrentNote]);
 
   const handleNoteSelect = useCallback((path: string) => {
@@ -244,8 +247,37 @@ export default function Home() {
 
   const handleGraphNodeClick = useCallback((nodeId: string) => {
     router.push(`/${nodeId}`);
-    setShowGraph(false);
+    setMainView('editor');
   }, [router]);
+
+  const handleMoveNoteOnBoard = useCallback(async (movedNoteId: string, newTags: string[]) => {
+    const noteToUpdate = notes.find((n) => n.id === movedNoteId);
+    if (!noteToUpdate) return;
+
+    try {
+      const res = await fetch(`/api/notes/${movedNoteId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: noteToUpdate.content,
+          frontmatter: {
+            ...noteToUpdate.frontmatter,
+            tags: newTags,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        if (currentNote && currentNote.id === movedNoteId) {
+          setCurrentNote(data.note);
+        }
+        await loadData();
+      }
+    } catch (error) {
+      console.error('Failed to update note tags on board move:', error);
+    }
+  }, [notes, currentNote, loadData]);
 
   const handleQuickSwitcherSelect = useCallback((selectedNoteId: string) => {
     router.push(`/${selectedNoteId}`);
@@ -282,8 +314,18 @@ export default function Home() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowGraph(!showGraph)}
+            onClick={() => setMainView(mainView === 'board' ? 'editor' : 'board')}
+            title="Toggle PARA board"
+            className={mainView === 'board' ? 'bg-zinc-800' : ''}
+          >
+            <List className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMainView(mainView === 'graph' ? 'editor' : 'graph')}
             title="Toggle graph view"
+            className={mainView === 'graph' ? 'bg-zinc-800' : ''}
           >
             <GitGraph className="w-4 h-4" />
           </Button>
@@ -368,13 +410,13 @@ export default function Home() {
                   <div className="flex flex-1">
                     <button
                       onClick={() => setActiveSidebarTab('files')}
-                      className={getTabClassName(activeSidebarTab === 'files', '')}
+                      className={getTabClassName(activeSidebarTab === 'files')}
                     >
                       Files
                     </button>
                     <button
                       onClick={() => setActiveSidebarTab('groups')}
-                      className={getTabClassName(activeSidebarTab === 'groups', '')}
+                      className={getTabClassName(activeSidebarTab === 'groups')}
                     >
                       Groups
                     </button>
@@ -412,7 +454,7 @@ export default function Home() {
 
         <main className="flex-1 overflow-hidden relative">
           <AnimatePresence mode="wait">
-            {showGraph ? (
+            {mainView === 'graph' ? (
               <motion.div
                 key="graph"
                 initial={{ opacity: 0, scale: 0.98 }}
@@ -426,6 +468,24 @@ export default function Home() {
                   onNodeClick={handleGraphNodeClick}
                   selectedNodeId={noteId}
                   notes={notes}
+                />
+              </motion.div>
+            ) : mainView === 'board' ? (
+              <motion.div
+                key="board"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+                className="h-full w-full"
+              >
+                <PARABoard
+                  notes={notes}
+                  onNoteSelect={(path) => {
+                    handleNoteSelect(path);
+                    setMainView('editor');
+                  }}
+                  onMoveNote={handleMoveNoteOnBoard}
                 />
               </motion.div>
             ) : currentNote ? (
@@ -532,19 +592,19 @@ export default function Home() {
                   <div className="flex flex-1">
                     <button
                       onClick={() => setActiveRightTab('backlinks')}
-                      className={getTabClassName(activeRightTab === 'backlinks', '')}
+                      className={getTabClassName(activeRightTab === 'backlinks')}
                     >
                       Backlinks
                     </button>
                     <button
                       onClick={() => setActiveRightTab('outline')}
-                      className={getTabClassName(activeRightTab === 'outline', '')}
+                      className={getTabClassName(activeRightTab === 'outline')}
                     >
                       Outline
                     </button>
                     <button
                       onClick={() => setActiveRightTab('tags')}
-                      className={getTabClassName(activeRightTab === 'tags', '')}
+                      className={getTabClassName(activeRightTab === 'tags')}
                     >
                       Tags
                     </button>

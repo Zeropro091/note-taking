@@ -4,35 +4,34 @@
 import { useState, useMemo } from 'react';
 import { File, ChevronDown, ChevronRight, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import type { Note } from '@/types/notes';
 import { cn } from '@/lib/utils';
 
 // Category definitions with icons and colors
-const CATEGORIES: Record<string, { tags: string[]; color: string; icon: string }> = {
-  'Sales & Business': {
-    tags: ['sales', 'closing', 'objections', 'lead-gen', 'follow-up', 'negotiation', 'growth', 'client-success', 'pricing'],
-    color: '#22c55e',
-    icon: '💼',
+export const PARA_CATEGORIES: Record<string, { tags: string[]; color: string; icon: string }> = {
+  'Projects': {
+    tags: ['project'],
+    color: '#3b82f6', // blue-500
+    icon: '🎯',
   },
-  'AI & Technology': {
-    tags: ['ai', 'tech', 'javascript', 'typescript', 'react', 'nextjs', 'python', 'rust', 'go'],
-    color: '#10b981',
-    icon: '🤖',
+  'Areas': {
+    tags: ['area'],
+    color: '#22c55e', // green-500
+    icon: '🪴',
   },
-  'Business Ideas': {
-    tags: ['saas', 'business', 'roadmap', 'app', 'documentation', 'security'],
-    color: '#8b5cf6',
-    icon: '💡',
+  'Resources': {
+    tags: ['resource'],
+    color: '#eab308', // yellow-500
+    icon: '📚',
   },
-  'Research & Development': {
-    tags: ['research'],
-    color: '#14b8a6',
-    icon: '🔬',
+  'Archives': {
+    tags: ['archive'],
+    color: '#6b7280', // gray-500
+    icon: '🗄️',
   },
   'General': {
     tags: [], // Default for notes without matching tags
-    color: '#6366f1',
+    color: '#6366f1', // indigo-500
     icon: '📝',
   },
 };
@@ -56,15 +55,14 @@ export default function NoteGroups({
   selectedId,
   onNoteSelect,
 }: NoteGroupsProps) {
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['Sales & Business', 'AI & Technology']));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['Projects', 'Areas']));
 
   // Group notes by category
   const groupedNotes = useMemo(() => {
     const groups: NoteGroup[] = [];
-    const unassignedNotes: Note[] = [];
 
     // First, categorize notes
-    for (const [categoryName, category] of Object.entries(CATEGORIES)) {
+    for (const [categoryName, category] of Object.entries(PARA_CATEGORIES)) {
       if (categoryName === 'General') continue; // Skip General, handle separately
 
       const categoryNotes = notes.filter((note) => {
@@ -90,8 +88,8 @@ export default function NoteGroups({
     if (generalNotes.length > 0) {
       groups.push({
         name: 'General',
-        icon: CATEGORIES.General.icon,
-        color: CATEGORIES.General.color,
+        icon: PARA_CATEGORIES.General.icon,
+        color: PARA_CATEGORIES.General.color,
         notes: generalNotes,
         count: generalNotes.length,
       });
