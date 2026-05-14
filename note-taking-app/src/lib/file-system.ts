@@ -91,37 +91,62 @@ export async function ensureNotesDir(): Promise<void> {
 // Read all markdown files recursively
 export async function getAllNotes(): Promise<Note[]> {
   await ensureNotesDir();
-  const notes: Note[] = [];
 
-  async function walkDir(dirPath: string, relativePath = '') {
+  // Process files in parallel for better performance but with bounded concurrency
+  async function walkDir(dirPath: string, relativePath = ''): Promise<Note[]> {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+    // We will collect all file paths to process them in chunks
+    const fileEntries: { fullPath: string, relPath: string, name: string }[] = [];
+    const dirPromises: Promise<Note[]>[] = [];
 
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
       const relPath = path.join(relativePath, entry.name);
 
       if (entry.isDirectory()) {
-        await walkDir(fullPath, relPath);
+        dirPromises.push(walkDir(fullPath, relPath));
       } else if (entry.name.endsWith('.md')) {
-        const content = await fs.readFile(fullPath, 'utf-8');
-        const { data, content: markdown } = matter(content);
-        const stats = await fs.stat(fullPath);
+        fileEntries.push({ fullPath, relPath, name: entry.name });
+      }
+    }
 
-        notes.push({
+    const CONCURRENCY_LIMIT = 50;
+    const fileResults: Note[][] = [];
+
+    // Process files in chunks to avoid OS file descriptor limits
+    for (let i = 0; i < fileEntries.length; i += CONCURRENCY_LIMIT) {
+      const chunk = fileEntries.slice(i, i + CONCURRENCY_LIMIT);
+
+      const chunkPromises = chunk.map(async ({ fullPath, relPath, name }) => {
+        const [content, stats] = await Promise.all([
+          fs.readFile(fullPath, 'utf-8'),
+          fs.stat(fullPath)
+        ]);
+        const { data, content: markdown } = matter(content);
+
+        return {
           id: relPath.replace(/\.md$/, ''),
           path: relPath,
-          title: data.title || entry.name.replace(/\.md$/, ''),
+          title: data.title || name.replace(/\.md$/, ''),
           content: markdown,
           frontmatter: data,
           tags: normalizeTags(data.tags),
           createdAt: data.created ? new Date(data.created) : stats.birthtime,
           updatedAt: data.updated ? new Date(data.updated) : stats.mtime,
-        });
-      }
+        };
+      });
+
+      const chunkResults = await Promise.all(chunkPromises);
+      fileResults.push(chunkResults);
     }
+
+    const dirResults = await Promise.all(dirPromises);
+
+    return [...dirResults.flat(), ...fileResults.flat()];
   }
 
-  await walkDir(NOTES_DIR);
+  const notes = await walkDir(NOTES_DIR);
   return notes.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
