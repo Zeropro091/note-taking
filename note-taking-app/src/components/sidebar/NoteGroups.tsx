@@ -4,7 +4,6 @@
 import { useState, useMemo } from 'react';
 import { File, ChevronDown, ChevronRight, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import type { Note } from '@/types/notes';
 import { cn } from '@/lib/utils';
 
