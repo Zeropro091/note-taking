@@ -12,7 +12,7 @@ const NOTES_DIR = path.join(process.cwd(), 'data', 'notes');
  * @param id - The note ID to validate
  * @returns true if valid, false otherwise
  */
-function validateNoteId(id: string): boolean {
+export function validateNoteId(id: string): boolean {
   // Reject empty IDs
   if (!id || typeof id !== 'string') {
     return false;
