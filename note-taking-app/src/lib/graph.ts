@@ -23,22 +23,34 @@ export function buildGraph(notes: Note[]): GraphData {
     edges.push({ source, target });
   };
 
-  // 1. Add connections from wikilinks in content
+  addWikilinkEdges(notes, addEdge);
+  addSharedTagEdges(notes, addEdge);
+
+  const projectIdeas = notes.filter(n => n.id.startsWith('project-Idea-'));
+  const businessIdeas = notes.filter(n => n.id.startsWith('business-Idea-'));
+
+  addThemeEdges(projectIdeas, addEdge);
+  addThemeEdges(businessIdeas, addEdge);
+  addCategoryEdges(projectIdeas, businessIdeas, addEdge);
+
+  return { nodes, edges };
+}
+
+function addWikilinkEdges(notes: Note[], addEdge: (s: string, t: string) => void) {
   for (const note of notes) {
     const links = extractWikilinks(note.content);
-
     for (const link of links) {
       const targetNote = notes.find(
         (n) => n.id === link.target || n.id === `${link.target}.md` || n.path === link.target
       );
-
       if (targetNote) {
         addEdge(note.id, targetNote.id);
       }
     }
   }
+}
 
-  // 2. Add connections based on shared tags (optimized)
+function addSharedTagEdges(notes: Note[], addEdge: (s: string, t: string) => void) {
   const notesByTag = new Map<string, string[]>();
   for (const note of notes) {
     for (const tag of note.tags || []) {
@@ -49,72 +61,42 @@ export function buildGraph(notes: Note[]): GraphData {
     }
   }
 
-  // Connect notes that share SPECIFIC tags (not generic ones)
-  // Skip overly common tags that create too many connections
   const commonTags = new Set(['project', 'business', 'tech', 'ai', 'saas', 'app', 'digital']);
-
   for (const [tag, noteIds] of notesByTag.entries()) {
-    // Skip if tag is too common or has too many notes
     if (commonTags.has(tag) || noteIds.length > 10) continue;
-
-    // Connect notes with the same specific tag (max 5 connections per tag)
     for (let i = 0; i < Math.min(noteIds.length, 6); i++) {
       for (let j = i + 1; j < Math.min(noteIds.length, 6); j++) {
         addEdge(noteIds[i], noteIds[j]);
       }
     }
   }
+}
 
-  // 3. Add category-based connections (for project and business ideas) - optimized
-  const projectIdeas = notes.filter(n => n.id.startsWith('project-Idea-'));
-  const businessIdeas = notes.filter(n => n.id.startsWith('business-Idea-'));
-
-  // Connect project ideas with shared themes (limit connections)
-  const projectThemes = new Map<string, string[]>();
-  for (const note of projectIdeas) {
+function addThemeEdges(ideaNotes: Note[], addEdge: (s: string, t: string) => void) {
+  const themesMap = new Map<string, string[]>();
+  for (const note of ideaNotes) {
     const themes = extractThemes(note);
     for (const theme of themes) {
-      if (!projectThemes.has(theme)) {
-        projectThemes.set(theme, []);
+      if (!themesMap.has(theme)) {
+        themesMap.set(theme, []);
       }
-      projectThemes.get(theme)!.push(note.id);
+      themesMap.get(theme)!.push(note.id);
     }
   }
 
-  // Only connect projects within same theme if theme is rare enough (max 5 notes)
-  for (const [theme, noteIds] of projectThemes.entries()) {
-    if (noteIds.length > 5) continue; // Skip crowded themes
+  for (const [, noteIds] of themesMap.entries()) {
+    if (noteIds.length > 5) continue;
     for (let i = 0; i < noteIds.length; i++) {
       for (let j = i + 1; j < noteIds.length; j++) {
         addEdge(noteIds[i], noteIds[j]);
       }
     }
   }
+}
 
-  // Connect business ideas with shared themes (limit connections)
-  const businessThemes = new Map<string, string[]>();
-  for (const note of businessIdeas) {
-    const themes = extractThemes(note);
-    for (const theme of themes) {
-      if (!businessThemes.has(theme)) {
-        businessThemes.set(theme, []);
-      }
-      businessThemes.get(theme)!.push(note.id);
-    }
-  }
-
-  // Only connect businesses within same theme if theme is rare enough (max 5 notes)
-  for (const [theme, noteIds] of businessThemes.entries()) {
-    if (noteIds.length > 5) continue; // Skip crowded themes
-    for (let i = 0; i < noteIds.length; i++) {
-      for (let j = i + 1; j < noteIds.length; j++) {
-        addEdge(noteIds[i], noteIds[j]);
-      }
-    }
-  }
-
-  // 4. Connect related project-business pairs (limit to prevent explosion)
+function addCategoryEdges(projectIdeas: Note[], businessIdeas: Note[], addEdge: (s: string, t: string) => void) {
   const categoryMap = new Map<string, { projects: string[]; businesses: string[] }>();
+
   for (const note of projectIdeas) {
     const category = categorizeNote(note);
     if (!categoryMap.has(category)) {
@@ -122,6 +104,7 @@ export function buildGraph(notes: Note[]): GraphData {
     }
     categoryMap.get(category)!.projects.push(note.id);
   }
+
   for (const note of businessIdeas) {
     const category = categorizeNote(note);
     if (!categoryMap.has(category)) {
@@ -130,9 +113,7 @@ export function buildGraph(notes: Note[]): GraphData {
     categoryMap.get(category)!.businesses.push(note.id);
   }
 
-  // Connect projects to businesses in same category (limit per category)
-  for (const [_, { projects, businesses }] of categoryMap.entries()) {
-    // Limit connections per category to prevent explosion
+  for (const [, { projects, businesses }] of categoryMap.entries()) {
     const maxConnections = Math.min(projects.length * businesses.length, 20);
     let connections = 0;
     for (const project of projects) {
@@ -144,8 +125,6 @@ export function buildGraph(notes: Note[]): GraphData {
       if (connections >= maxConnections) break;
     }
   }
-
-  return { nodes, edges };
 }
 
 // Extract themes/keywords from note content and title
@@ -300,7 +279,7 @@ export function findHubNotes(graph: GraphData, threshold = 3): Array<{
   }
 
   return Array.from(connectionCount.entries())
-    .filter(([_, count]) => count >= threshold)
+    .filter(([, count]) => count >= threshold)
     .map(([id, connections]) => ({ id, connections }))
     .sort((a, b) => b.connections - a.connections);
 }
