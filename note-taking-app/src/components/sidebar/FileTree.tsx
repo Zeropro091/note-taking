@@ -2,7 +2,7 @@
 
 // File tree component for browsing notes
 import { useState } from 'react';
-import { File, Folder, FolderOpen, FilePlus, FolderPlus, Trash2, Edit2 } from 'lucide-react';
+import { File, Folder, FolderOpen, FilePlus, FolderPlus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
