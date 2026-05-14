@@ -1,7 +1,6 @@
 // File system utilities for markdown notes
 import fs from 'fs/promises';
 import path from 'path';
-import { resolve } from 'path';
 import matter from 'gray-matter';
 import type { Note, FileNode } from '@/types/notes';
 
@@ -18,17 +17,21 @@ function validateNoteId(id: string): boolean {
     return false;
   }
 
-  // Remove any directory traversal attempts and normalize
-  const normalized = id.replace(/\.\./g, '').replace(/\\/g, '/');
-
   // Check for invalid characters (Windows/Unix filename restrictions)
-  if (/[<>:"|?*\x00-\x1f]/.test(normalized)) {
+  if (/[<>:"|?*\x00-\x1f]/.test(id)) {
     return false;
   }
 
-  // Ensure the resolved path is within NOTES_DIR
-  const resolvedPath = resolve(NOTES_DIR, `${normalized}.md`);
-  return resolvedPath.startsWith(NOTES_DIR);
+  // Use path.resolve to get the absolute path
+  // We resolve the id relative to NOTES_DIR.
+  // If id is absolute, resolve will return it as is (or relative to root).
+  const resolvedPath = path.resolve(NOTES_DIR, id + '.md');
+
+  // Use path.relative to see if the resolved path is truly within NOTES_DIR
+  const relative = path.relative(NOTES_DIR, resolvedPath);
+
+  // A safe relative path should not start with '..' and should not be absolute
+  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 /**
@@ -37,10 +40,19 @@ function validateNoteId(id: string): boolean {
  * @returns A sanitized ID safe for file operations
  */
 function sanitizeNoteId(id: string): string {
+  // We should not rely on simple regex replacement for security.
+  // Instead, we validate and return the input if it's safe,
+  // or a strictly sanitized version.
+  if (validateNoteId(id)) {
+    return id.replace(/\\/g, '/');
+  }
+
+  // If it fails validation, we return a version that is definitely safe by stripping
+  // everything that could be a path separator or traversal
   return id
-    .replace(/\.\./g, '') // Remove parent directory references
-    .replace(/\\/g, '/')   // Normalize path separators
-    .replace(/[<>:"|?*\x00-\x1f]/g, ''); // Remove invalid characters
+    .replace(/[\\\/]/g, '_')
+    .replace(/\.\./g, '__')
+    .replace(/[<>:"|?*\x00-\x1f]/g, '');
 }
 
 /**
