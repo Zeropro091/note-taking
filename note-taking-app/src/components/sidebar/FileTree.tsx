@@ -78,7 +78,7 @@ function TreeNode({
     <div>
       <div
         className={`
-          flex items-center gap-2 px-2 py-1 rounded cursor-pointer
+          group flex items-center gap-2 px-2 py-1 rounded cursor-pointer
           hover:bg-zinc-800 transition-colors
           ${isSelected ? 'bg-zinc-800 text-blue-400' : 'text-zinc-300'}
         `}
@@ -116,7 +116,8 @@ function TreeNode({
         {node.type === 'file' && (
           <button
             onClick={handleDelete}
-            className="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1"
+            aria-label={`Delete ${node.name}`}
+            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-red-400 rounded hover:text-red-400 p-1"
           >
             <Trash2 className="w-3 h-3" />
           </button>
@@ -195,6 +196,7 @@ export default function FileTree({
                 setShowNewMenu(!showNewMenu);
               }}
               title="New note"
+              aria-label="Create new note"
             >
               <FilePlus className="w-4 h-4" />
             </Button>
@@ -207,6 +209,7 @@ export default function FileTree({
                 setShowNewMenu(!showNewMenu);
               }}
               title="New folder"
+              aria-label="Create new folder"
             >
               <FolderPlus className="w-4 h-4" />
             </Button>
