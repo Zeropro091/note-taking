@@ -1,7 +1,6 @@
 // API route for individual note operations
 import { NextRequest, NextResponse } from 'next/server';
 import { getNoteById, saveNote, deleteNote, renameNote } from '@/lib/file-system';
-import { buildGraph, findBacklinks } from '@/lib/graph';
 
 export const runtime = 'nodejs';
 
