@@ -37,14 +37,22 @@ export function buildGraph(notes: Note[]): GraphData {
 }
 
 function addWikilinkEdges(notes: Note[], addEdge: (s: string, t: string) => void) {
+  // Pre-compute a lookup map for O(1) resolution of link targets
+  // This avoids an O(N) find operation for every single wikilink,
+  // reducing the complexity from O(N * M) to O(N + M).
+  const noteLookup = new Map<string, string>();
+  for (const note of notes) {
+    noteLookup.set(note.id, note.id);
+    noteLookup.set(`${note.id}.md`, note.id);
+    noteLookup.set(note.path, note.id);
+  }
+
   for (const note of notes) {
     const links = extractWikilinks(note.content);
     for (const link of links) {
-      const targetNote = notes.find(
-        (n) => n.id === link.target || n.id === `${link.target}.md` || n.path === link.target
-      );
-      if (targetNote) {
-        addEdge(note.id, targetNote.id);
+      const targetId = noteLookup.get(link.target);
+      if (targetId) {
+        addEdge(note.id, targetId);
       }
     }
   }
