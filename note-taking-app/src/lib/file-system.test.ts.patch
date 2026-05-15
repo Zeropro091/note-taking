@@ -1,0 +1,15 @@
+--- note-taking-app/src/lib/file-system.test.ts.orig	2024-05-15 16:41:00.000000000 +0000
++++ note-taking-app/src/lib/file-system.test.ts	2024-05-15 16:42:00.000000000 +0000
+@@ -44,9 +44,9 @@
+     expect(validateNoteId('../../etc/passwd')).toBe(false);
+   });
+
+-  it('should allow path traversal attempts that resolve within the directory after stripping', () => {
+-    // 'folder/../../note' becomes 'folder///note' after stripping '..'
+-    expect(validateNoteId('folder/../../note')).toBe(true);
++  it('should explicitly reject all path traversal attempts that use parent directories', () => {
++    // It was insecure to silently strip .. and allow 'folder/../../note'.
++    expect(validateNoteId('folder/../../note')).toBe(false);
+   });
+
+   it('should handle Windows-style path traversal attempts', () => {
