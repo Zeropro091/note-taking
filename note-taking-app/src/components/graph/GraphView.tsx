@@ -239,6 +239,7 @@ export default function GraphView({
           variant="secondary"
           onClick={handleZoomIn}
           title="Zoom in (or use mouse wheel)"
+          aria-label="Zoom in"
         >
           <ZoomIn className="w-4 h-4" />
         </Button>
@@ -247,6 +248,7 @@ export default function GraphView({
           variant="secondary"
           onClick={handleZoomOut}
           title="Zoom out (or use mouse wheel)"
+          aria-label="Zoom out"
         >
           <ZoomOut className="w-4 h-4" />
         </Button>
@@ -255,6 +257,7 @@ export default function GraphView({
           variant="secondary"
           onClick={handleReset}
           title="Reset view (fit all nodes)"
+          aria-label="Reset view"
         >
           <RotateCcw className="w-4 h-4" />
         </Button>
@@ -263,6 +266,8 @@ export default function GraphView({
           variant={isPaused ? "default" : "secondary"}
           onClick={togglePause}
           title={isPaused ? "Resume physics" : "Pause physics"}
+          aria-label={isPaused ? "Resume physics simulation" : "Pause physics simulation"}
+          aria-pressed={isPaused}
         >
           {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
         </Button>
@@ -271,6 +276,8 @@ export default function GraphView({
           variant="secondary"
           onClick={isIsolated ? resetGraph : () => setIsIsolated(true)}
           title={isIsolated ? "Show all notes" : "Click a node to isolate"}
+          aria-label={isIsolated ? "Show all notes" : "Isolate selected node"}
+          aria-pressed={isIsolated}
         >
           {isIsolated ? <Undo className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
         </Button>
@@ -279,6 +286,7 @@ export default function GraphView({
           variant="secondary"
           onClick={exportGraph}
           title="Download graph as image"
+          aria-label="Download graph as image"
         >
           <Download className="w-4 h-4" />
         </Button>
@@ -287,6 +295,8 @@ export default function GraphView({
           variant="secondary"
           onClick={() => setIsFullscreen(!isFullscreen)}
           title={isFullscreen ? "Exit fullscreen" : "Fullscreen mode"}
+          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen mode"}
+          aria-pressed={isFullscreen}
         >
           <Maximize2 className="w-4 h-4" />
         </Button>
@@ -431,7 +441,8 @@ export default function GraphView({
               </div>
               <button
                 onClick={closeInfoPanel}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="text-zinc-500 hover:text-zinc-300 transition-colors focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none rounded-sm p-1"
+                aria-label="Close note details"
               >
                 <X className="w-4 h-4" />
               </button>
