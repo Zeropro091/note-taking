@@ -1,0 +1,4 @@
+## 2024-05-16 - [Path Traversal POSIX Bypass]
+**Vulnerability:** A path traversal bypass was discovered in `validateNoteId`. Backslashes were not normalized before `path.resolve` and `path.relative` on POSIX systems, allowing payload like `folder/..\\..\\etc\\passwd` to pass validation but escape the directory when later normalized in `sanitizeNoteId`.
+**Learning:** Normalizing inputs (like replacing backslashes with forward slashes) must happen BEFORE validation checks, especially when relying on OS-dependent path functions (`path.resolve`, `path.relative`), which handle backslashes differently on POSIX vs Windows.
+**Prevention:** Always normalize path separators to a consistent format (e.g. forward slashes) as the absolute first step before performing any path traversal boundary validation logic.
