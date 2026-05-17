@@ -92,6 +92,7 @@ export async function ensureNotesDir(): Promise<void> {
 export async function getAllNotes(): Promise<Note[]> {
   await ensureNotesDir();
   const notes: Note[] = [];
+  const tasks: (() => Promise<void>)[] = [];
 
   async function walkDir(dirPath: string, relativePath = '') {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -101,27 +102,46 @@ export async function getAllNotes(): Promise<Note[]> {
       const relPath = path.join(relativePath, entry.name);
 
       if (entry.isDirectory()) {
-        await walkDir(fullPath, relPath);
+        // Collect directory traversal tasks
+        tasks.push(() => walkDir(fullPath, relPath));
       } else if (entry.name.endsWith('.md')) {
-        const content = await fs.readFile(fullPath, 'utf-8');
-        const { data, content: markdown } = matter(content);
-        const stats = await fs.stat(fullPath);
+        // Collect file reading tasks
+        tasks.push(async () => {
+          const content = await fs.readFile(fullPath, 'utf-8');
+          const { data, content: markdown } = matter(content);
+          const stats = await fs.stat(fullPath);
 
-        notes.push({
-          id: relPath.replace(/\.md$/, ''),
-          path: relPath,
-          title: data.title || entry.name.replace(/\.md$/, ''),
-          content: markdown,
-          frontmatter: data,
-          tags: normalizeTags(data.tags),
-          createdAt: data.created ? new Date(data.created) : stats.birthtime,
-          updatedAt: data.updated ? new Date(data.updated) : stats.mtime,
+          notes.push({
+            id: relPath.replace(/\.md$/, ''),
+            path: relPath,
+            title: data.title || entry.name.replace(/\.md$/, ''),
+            content: markdown,
+            frontmatter: data,
+            tags: normalizeTags(data.tags),
+            createdAt: data.created ? new Date(data.created) : stats.birthtime,
+            updatedAt: data.updated ? new Date(data.updated) : stats.mtime,
+          });
         });
       }
     }
   }
 
+  // Initial call adds root-level tasks
   await walkDir(NOTES_DIR);
+
+  // ⚡ Bolt Optimization: Use chunked Promise.all to parallelize filesystem reads
+  // without hitting EMFILE OS limits. Substantially improves load times for large note sets.
+  const CHUNK_SIZE = 50;
+
+  // We use a queue to process tasks, since directory traversal tasks
+  // will append more tasks to the end of the array.
+  let currentIndex = 0;
+  while (currentIndex < tasks.length) {
+    const chunk = tasks.slice(currentIndex, currentIndex + CHUNK_SIZE);
+    currentIndex += chunk.length;
+    await Promise.all(chunk.map((task) => task()));
+  }
+
   return notes.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
