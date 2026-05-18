@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { validateNoteId } from './file-system';
-import path from 'path';
 
 // Mock process.cwd() so tests are predictable regardless of where they run
 vi.spyOn(process, 'cwd').mockReturnValue('/mock/project/dir');
@@ -45,13 +44,18 @@ describe('validateNoteId', () => {
     expect(validateNoteId('../../etc/passwd')).toBe(false);
   });
 
-  it('should allow path traversal attempts that resolve within the directory after stripping', () => {
-    // 'folder/../../note' becomes 'folder///note' after stripping '..'
-    expect(validateNoteId('folder/../../note')).toBe(true);
+  it('should block path traversal attempts that escape the directory', () => {
+    // 'folder/../../note' resolves to '../note' relative to root
+    expect(validateNoteId('folder/../../note')).toBe(false);
   });
 
   it('should handle Windows-style path traversal attempts', () => {
     expect(validateNoteId('..\\note')).toBe(false);
     expect(validateNoteId('..\\..\\Windows\\System32')).toBe(false);
+  });
+
+  it('should block POSIX backslash traversal bypasses', () => {
+    expect(validateNoteId('\\..\\..\\..\\etc\\passwd')).toBe(false);
+    expect(validateNoteId('\\..\\..\\etc\\shadow')).toBe(false);
   });
 });
