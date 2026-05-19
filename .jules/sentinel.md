@@ -1,0 +1,4 @@
+## 2024-05-19 - [Path Traversal POSIX Bypass]
+**Vulnerability:** A path traversal bypass was discovered where user input containing Windows-style backslashes (e.g., `foo\..\..\etc\passwd`) could bypass validation on POSIX systems.
+**Learning:** `path.resolve` on POSIX systems treats `\` as regular characters in file names, meaning the initial validation step did not identify `foo\..\..\etc\passwd` as escaping the base directory. However, when the path was later "sanitized" (replacing `\` with `/`) or interpreted by certain parts of the filesystem, the traversal became effective, allowing access to files outside `NOTES_DIR`.
+**Prevention:** Always normalize directory separators (e.g., replacing `\` with `/`) *before* resolving the path against the base directory and validating that it remains within the intended boundaries.
