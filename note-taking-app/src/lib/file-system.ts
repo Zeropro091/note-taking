@@ -91,9 +91,10 @@ export async function ensureNotesDir(): Promise<void> {
 // Read all markdown files recursively
 export async function getAllNotes(): Promise<Note[]> {
   await ensureNotesDir();
-  const notes: Note[] = [];
+  const filesToRead: Array<{ fullPath: string; relPath: string; name: string }> = [];
 
-  async function walkDir(dirPath: string, relativePath = '') {
+  // First pass: collect all file paths
+  async function collectFiles(dirPath: string, relativePath = '') {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -101,27 +102,45 @@ export async function getAllNotes(): Promise<Note[]> {
       const relPath = path.join(relativePath, entry.name);
 
       if (entry.isDirectory()) {
-        await walkDir(fullPath, relPath);
+        await collectFiles(fullPath, relPath);
       } else if (entry.name.endsWith('.md')) {
-        const content = await fs.readFile(fullPath, 'utf-8');
-        const { data, content: markdown } = matter(content);
-        const stats = await fs.stat(fullPath);
+        filesToRead.push({ fullPath, relPath, name: entry.name });
+      }
+    }
+  }
 
-        notes.push({
-          id: relPath.replace(/\.md$/, ''),
-          path: relPath,
-          title: data.title || entry.name.replace(/\.md$/, ''),
+  await collectFiles(NOTES_DIR);
+
+  // Second pass: read files in chunks to prevent EMFILE limits while speeding up I/O
+  const notes: Note[] = [];
+  const CHUNK_SIZE = 50;
+
+  for (let i = 0; i < filesToRead.length; i += CHUNK_SIZE) {
+    const chunk = filesToRead.slice(i, i + CHUNK_SIZE);
+
+    // Process the chunk concurrently
+    const chunkResults = await Promise.all(
+      chunk.map(async (file) => {
+        const content = await fs.readFile(file.fullPath, 'utf-8');
+        const { data, content: markdown } = matter(content);
+        const stats = await fs.stat(file.fullPath);
+
+        return {
+          id: file.relPath.replace(/\.md$/, ''),
+          path: file.relPath,
+          title: data.title || file.name.replace(/\.md$/, ''),
           content: markdown,
           frontmatter: data,
           tags: normalizeTags(data.tags),
           createdAt: data.created ? new Date(data.created) : stats.birthtime,
           updatedAt: data.updated ? new Date(data.updated) : stats.mtime,
-        });
-      }
-    }
+        };
+      })
+    );
+
+    notes.push(...chunkResults);
   }
 
-  await walkDir(NOTES_DIR);
   return notes.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
