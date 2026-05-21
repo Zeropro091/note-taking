@@ -1,0 +1,4 @@
+## 2025-02-14 - [Path Traversal bypass on Windows backslashes]
+**Vulnerability:** A POSIX path traversal bypass using backslashes (`..\\..\\etc\\passwd`) was allowed by `validateNoteId`, because `path.resolve` treats backslashes literally on POSIX systems (Linux/Mac). However, the same id is then passed to `sanitizeNoteId` which replaces all backslashes with forward slashes, ultimately producing a successful traversal payload when used in file operations (`path.join`).
+**Learning:** Checking for traversal by using `path.relative` on un-sanitized paths can allow bypasses if those paths are later modified (e.g. converting `\` to `/`) before they're finally used. The validation input did not match the execution input.
+**Prevention:** Normalize backslashes to forward slashes *before* applying path resolution checks to ensure you're validating the exact same path shape that will eventually be processed.
