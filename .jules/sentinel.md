@@ -1,0 +1,4 @@
+## 2024-05-21 - Normalization-Order Path Traversal Bypass
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` where backslashes were not normalized to forward slashes *before* resolving the path on POSIX systems.
+**Learning:** `path.resolve` on a POSIX system treats backslashes (`\`) as regular filename characters. A payload like `..\..\etc\passwd` would successfully pass the validation because `path.resolve` treats it as a file named `..\..\etc\passwd.md` inside the notes directory. However, later in the process, `sanitizeNoteId` replaced backslashes with forward slashes (or they were processed by a system that understood them), turning the safe-looking path into an actual traversal `../../etc/passwd`.
+**Prevention:** Always normalize path separators (e.g., `id.replace(/\\/g, '/')`) *before* applying path resolution and validation logic to prevent POSIX traversal bypasses.
