@@ -92,7 +92,9 @@ export async function ensureNotesDir(): Promise<void> {
 export async function getAllNotes(): Promise<Note[]> {
   await ensureNotesDir();
   const notes: Note[] = [];
+  const filesToProcess: { fullPath: string; relPath: string; name: string }[] = [];
 
+  // Phase 1: Recursively gather all file paths sequentially (fast)
   async function walkDir(dirPath: string, relativePath = '') {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
 
@@ -103,25 +105,44 @@ export async function getAllNotes(): Promise<Note[]> {
       if (entry.isDirectory()) {
         await walkDir(fullPath, relPath);
       } else if (entry.name.endsWith('.md')) {
-        const content = await fs.readFile(fullPath, 'utf-8');
-        const { data, content: markdown } = matter(content);
-        const stats = await fs.stat(fullPath);
-
-        notes.push({
-          id: relPath.replace(/\.md$/, ''),
-          path: relPath,
-          title: data.title || entry.name.replace(/\.md$/, ''),
-          content: markdown,
-          frontmatter: data,
-          tags: normalizeTags(data.tags),
-          createdAt: data.created ? new Date(data.created) : stats.birthtime,
-          updatedAt: data.updated ? new Date(data.updated) : stats.mtime,
-        });
+        filesToProcess.push({ fullPath, relPath, name: entry.name });
       }
     }
   }
 
   await walkDir(NOTES_DIR);
+
+  // Phase 2: Process files in chunks to avoid EMFILE (too many open files) limits
+  // while still benefiting from concurrency.
+  const CHUNK_SIZE = 50;
+  for (let i = 0; i < filesToProcess.length; i += CHUNK_SIZE) {
+    const chunk = filesToProcess.slice(i, i + CHUNK_SIZE);
+
+    const chunkNotes = await Promise.all(
+      chunk.map(async ({ fullPath, relPath, name }) => {
+        const [content, stats] = await Promise.all([
+          fs.readFile(fullPath, 'utf-8'),
+          fs.stat(fullPath)
+        ]);
+
+        const { data, content: markdown } = matter(content);
+
+        return {
+          id: relPath.replace(/\.md$/, ''),
+          path: relPath,
+          title: data.title || name.replace(/\.md$/, ''),
+          content: markdown,
+          frontmatter: data,
+          tags: normalizeTags(data.tags),
+          createdAt: data.created ? new Date(data.created) : stats.birthtime,
+          updatedAt: data.updated ? new Date(data.updated) : stats.mtime,
+        };
+      })
+    );
+
+    notes.push(...chunkNotes);
+  }
+
   return notes.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
