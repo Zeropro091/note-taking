@@ -91,9 +91,11 @@ export async function ensureNotesDir(): Promise<void> {
 // Read all markdown files recursively
 export async function getAllNotes(): Promise<Note[]> {
   await ensureNotesDir();
-  const notes: Note[] = [];
 
-  async function walkDir(dirPath: string, relativePath = '') {
+  // ⚡ Bolt: Gather all file paths first to allow for parallel processing
+  const fileEntries: { fullPath: string; relPath: string; name: string }[] = [];
+
+  async function gatherFiles(dirPath: string, relativePath = '') {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -101,27 +103,47 @@ export async function getAllNotes(): Promise<Note[]> {
       const relPath = path.join(relativePath, entry.name);
 
       if (entry.isDirectory()) {
-        await walkDir(fullPath, relPath);
+        await gatherFiles(fullPath, relPath);
       } else if (entry.name.endsWith('.md')) {
-        const content = await fs.readFile(fullPath, 'utf-8');
-        const { data, content: markdown } = matter(content);
-        const stats = await fs.stat(fullPath);
+        fileEntries.push({ fullPath, relPath, name: entry.name });
+      }
+    }
+  }
 
-        notes.push({
+  await gatherFiles(NOTES_DIR);
+
+  const notes: Note[] = [];
+  const CHUNK_SIZE = 50;
+
+  // ⚡ Bolt: Process files in parallel chunks to dramatically improve I/O throughput
+  // Bounded concurrency (50 at a time) avoids hitting OS EMFILE limits
+  for (let i = 0; i < fileEntries.length; i += CHUNK_SIZE) {
+    const chunk = fileEntries.slice(i, i + CHUNK_SIZE);
+
+    const chunkResults = await Promise.all(
+      chunk.map(async ({ fullPath, relPath, name }) => {
+        // ⚡ Bolt: Read file content and stats concurrently
+        const [content, stats] = await Promise.all([
+          fs.readFile(fullPath, 'utf-8'),
+          fs.stat(fullPath)
+        ]);
+        const { data, content: markdown } = matter(content);
+
+        return {
           id: relPath.replace(/\.md$/, ''),
           path: relPath,
-          title: data.title || entry.name.replace(/\.md$/, ''),
+          title: data.title || name.replace(/\.md$/, ''),
           content: markdown,
           frontmatter: data,
           tags: normalizeTags(data.tags),
           createdAt: data.created ? new Date(data.created) : stats.birthtime,
           updatedAt: data.updated ? new Date(data.updated) : stats.mtime,
-        });
-      }
-    }
+        };
+      })
+    );
+    notes.push(...chunkResults);
   }
 
-  await walkDir(NOTES_DIR);
   return notes.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
