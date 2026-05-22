@@ -1,0 +1,4 @@
+## 2024-05-22 - Path Traversal POSIX Bypass
+**Vulnerability:** A critical path traversal vulnerability existed in `note-taking-app/src/lib/file-system.ts`. Backslashes (`\`) were interpreted as regular filename characters rather than directory separators by `path.resolve` on non-Windows platforms. This allowed a malicious ID like `foo\..\..\..\etc\passwd` to pass validation, which was subsequently transformed by `sanitizeNoteId` into `foo/../../../etc/passwd`—resulting in an actual path traversal.
+**Learning:** Security validations for file paths must strictly normalize paths (such as converting backslashes to forward slashes) **before** calling resolution methods like `path.resolve` or `path.relative`, to prevent bypasses where validation logic and sanitization logic disagree on the directory separator.
+**Prevention:** Always normalize the path separators (`.replace(/\\/g, '/')`) before evaluating `path.resolve` to verify if a path escapes its intended directory.
