@@ -1,0 +1,3 @@
+## 2024-05-22 - Bounded Concurrency for File Reads
+**Learning:** Sequential file reading in Node.js (e.g. `for...of` with `await fs.readFile`) creates significant I/O bottlenecks when processing large numbers of markdown notes, taking more than double the necessary time. However, unbounded concurrency using naive `Promise.all` across directories with hundreds of files can trigger OS EMFILE limits (too many open files) and crash the application.
+**Action:** When parallelizing file system reads in Node.js, chunk file processing using bounded concurrency (e.g., in batches of 50) and use `Promise.all` within each chunk. Furthermore, I/O calls for the same file, like `readFile` and `stat`, should also be executed concurrently.
