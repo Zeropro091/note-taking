@@ -1,7 +1,7 @@
 'use client';
 
 // Graph visualization component with enhanced interactivity
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { GraphData as FGData } from 'react-force-graph-2d';
 import * as d3 from 'd3-force';
@@ -38,32 +38,37 @@ export default function GraphView({
   }, [notes]);
 
   // Save current graph data before isolation
-  const currentData: FGData = {
-    nodes: graph.nodes
-      .filter((node) => {
-        if (!filterTag) return true;
-        return node.tags.includes(filterTag);
-      })
-      .map((node) => ({
-        id: node.id,
-        name: node.label,
-        val: node.tags.length + 1,
-        color: node.id === selectedNodeId ? '#3b82f6' : getColorForTags(node.tags),
-      })),
-    links: graph.edges
-      .filter((edge) => {
-        if (!filterTag) return true;
-        const sourceNode = graph.nodes.find((n) => n.id === edge.source);
-        const targetNode = graph.nodes.find((n) => n.id === edge.target);
-        return (
-          sourceNode?.tags.includes(filterTag) || targetNode?.tags.includes(filterTag)
-        );
-      })
-      .map((edge) => ({
-        source: edge.source,
-        target: edge.target,
-      })),
-  };
+  const currentData: FGData = useMemo(() => {
+    // Optimization: Create a set of node IDs that have the filterTag
+    // to avoid O(N^2) lookups when filtering edges
+    const nodesWithTag = filterTag
+      ? new Set(graph.nodes.filter(n => n.tags.includes(filterTag)).map(n => n.id))
+      : new Set<string>();
+
+    return {
+      nodes: graph.nodes
+        .filter((node) => {
+          if (!filterTag) return true;
+          return nodesWithTag.has(node.id);
+        })
+        .map((node) => ({
+          id: node.id,
+          name: node.label,
+          val: node.tags.length + 1,
+          color: node.id === selectedNodeId ? '#3b82f6' : getColorForTags(node.tags),
+        })),
+      links: graph.edges
+        .filter((edge) => {
+          if (!filterTag) return true;
+          // O(1) lookup instead of array .find()
+          return nodesWithTag.has(edge.source) || nodesWithTag.has(edge.target);
+        })
+        .map((edge) => ({
+          source: edge.source,
+          target: edge.target,
+        })),
+    };
+  }, [graph, filterTag, selectedNodeId]);
 
   // Use isolated data if available, otherwise use filtered currentData
   const displayData = isolatedData || currentData;
