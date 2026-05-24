@@ -301,7 +301,7 @@ export default function Home() {
             variant="ghost"
             size="sm"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            title="Toggle sidebar"
+            title="Toggle sidebar" aria-label="Toggle sidebar"
           >
             <Menu className="w-5 h-5" />
           </Button>
@@ -315,7 +315,7 @@ export default function Home() {
             variant="ghost"
             size="sm"
             onClick={() => setMainView(mainView === 'board' ? 'editor' : 'board')}
-            title="Toggle PARA board"
+            title="Toggle PARA board" aria-label="Toggle PARA board"
             className={mainView === 'board' ? 'bg-zinc-800' : ''}
           >
             <List className="w-4 h-4" />
@@ -324,7 +324,7 @@ export default function Home() {
             variant="ghost"
             size="sm"
             onClick={() => setMainView(mainView === 'graph' ? 'editor' : 'graph')}
-            title="Toggle graph view"
+            title="Toggle graph view" aria-label="Toggle graph view"
             className={mainView === 'graph' ? 'bg-zinc-800' : ''}
           >
             <GitGraph className="w-4 h-4" />
@@ -333,7 +333,7 @@ export default function Home() {
             variant="ghost"
             size="sm"
             onClick={() => quickSwitcher.open()}
-            title="Quick switcher (⌘K)"
+            title="Quick switcher (⌘K)" aria-label="Quick switcher (⌘K)"
           >
             <Search className="w-4 h-4" />
           </Button>
@@ -341,14 +341,14 @@ export default function Home() {
             variant="ghost"
             size="sm"
             onClick={() => setRightPanelOpen(!rightPanelOpen)}
-            title="Toggle right panel"
+            title="Toggle right panel" aria-label="Toggle right panel"
           >
             <PanelRight className="w-4 h-4" />
           </Button>
           <Button
             size="sm"
             onClick={handleNewNote}
-            title="New note"
+            title="New note" aria-label="New note"
           >
             <Plus className="w-4 h-4 mr-1" />
             New
@@ -379,7 +379,7 @@ export default function Home() {
                           ? 'bg-zinc-800 text-zinc-300'
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
-                      title="Files"
+                      title="Files" aria-label="Files"
                     >
                       <Files className="w-4 h-4" />
                     </button>
@@ -391,7 +391,7 @@ export default function Home() {
                           ? 'bg-zinc-800 text-zinc-300'
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
-                      title="Groups"
+                      title="Groups" aria-label="Groups"
                     >
                       <FolderOpen className="w-4 h-4" />
                     </button>
@@ -399,7 +399,7 @@ export default function Home() {
                   <button
                     onClick={() => setSidebarTabsCollapsed(false)}
                     className="p-1 text-zinc-500 hover:text-zinc-400 transition-colors"
-                    title="Expand tabs"
+                    title="Expand tabs" aria-label="Expand tabs"
                   >
                     <ChevronDown className="w-4 h-4" />
                   </button>
@@ -424,7 +424,7 @@ export default function Home() {
                   <button
                     onClick={() => setSidebarTabsCollapsed(true)}
                     className="px-2 py-2 text-zinc-500 hover:text-zinc-400 transition-colors"
-                    title="Minimize tabs"
+                    title="Minimize tabs" aria-label="Minimize tabs"
                   >
                     <ChevronUp className="w-4 h-4" />
                   </button>
@@ -549,7 +549,7 @@ export default function Home() {
                           ? 'bg-zinc-800 text-zinc-300'
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
-                      title="Backlinks"
+                      title="Backlinks" aria-label="Backlinks"
                     >
                       <Link2 className="w-4 h-4" />
                     </button>
@@ -561,7 +561,7 @@ export default function Home() {
                           ? 'bg-zinc-800 text-zinc-300'
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
-                      title="Outline"
+                      title="Outline" aria-label="Outline"
                     >
                       <List className="w-4 h-4" />
                     </button>
@@ -573,7 +573,7 @@ export default function Home() {
                           ? 'bg-zinc-800 text-zinc-300'
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
-                      title="Tags"
+                      title="Tags" aria-label="Tags"
                     >
                       <TagsIcon className="w-4 h-4" />
                     </button>
@@ -581,7 +581,7 @@ export default function Home() {
                   <button
                     onClick={() => setRightTabsCollapsed(false)}
                     className="p-1 text-zinc-500 hover:text-zinc-400 transition-colors"
-                    title="Expand tabs"
+                    title="Expand tabs" aria-label="Expand tabs"
                   >
                     <ChevronDown className="w-4 h-4" />
                   </button>
@@ -612,7 +612,7 @@ export default function Home() {
                   <button
                     onClick={() => setRightTabsCollapsed(true)}
                     className="px-2 py-2 text-zinc-500 hover:text-zinc-400 transition-colors"
-                    title="Minimize tabs"
+                    title="Minimize tabs" aria-label="Minimize tabs"
                   >
                     <ChevronUp className="w-4 h-4" />
                   </button>

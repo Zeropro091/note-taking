@@ -59,7 +59,7 @@ export default function TagsPanel({
               className="space-y-1"
             >
               {/* Show all option */}
-              <button
+              <button aria-label="Show all notes"
                 onClick={() => onTagSelect(null)}
                 className={`
                   w-full text-left px-2 py-1.5 rounded hover:bg-zinc-800
