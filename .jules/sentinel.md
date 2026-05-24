@@ -1,0 +1,4 @@
+## 2024-05-24 - [Path Traversal bypass via Backslash Normalization]
+**Vulnerability:** Path traversal bypass in note IDs. An attacker could use backslashes (e.g., `..\..\etc/passwd`) which bypasses `path.resolve` and `path.relative` on POSIX systems (which treat `\` as a valid filename character rather than a directory separator), but those backslashes were later normalized to forward slashes right before the file read/write, causing the actual path traversal.
+**Learning:** Security validations that rely on path parsing must use the same path semantics as the final file operation. If a path is going to be sanitized or normalized before use, validation must occur *after* or *on* the normalized string to ensure the validation accurately reflects what will be processed.
+**Prevention:** Always normalize backslashes to forward slashes *before* resolving paths and checking relative path containment using `path.relative`.
