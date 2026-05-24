@@ -1,0 +1,3 @@
+## 2024-05-24 - Memoizing Graph Data and Optimizing Filter Lookups
+**Learning:** In React components that render data-heavy visualizations like ForceGraph2D, defining complex objects inline without `useMemo` causes redundant recalculations on every render, and array lookups inside filter loops (O(N*E) complexity) can become significant performance bottlenecks as the graph grows.
+**Action:** Always wrap expensive derived states, especially objects passed as props to heavy children, in `useMemo`. When filtering edges based on node properties, precompute a `Set` or `Map` of valid nodes first (O(N)) to turn inner loop lookups into O(1) operations, achieving an overall O(N+E) time complexity.
