@@ -150,7 +150,7 @@ export default function PARABoard({ notes, onNoteSelect, onMoveNote }: PARABoard
                   transition={{ duration: 0.2 }}
                   draggable
                   onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, note)}
-                  onDragEnd={handleDragEnd}
+                  onDragEnd={(e) => handleDragEnd(e as unknown as React.DragEvent)}
                   onClick={() => onNoteSelect(note.path)}
                   className={cn(
                     "p-3 rounded border border-zinc-800 bg-zinc-900/80 cursor-grab active:cursor-grabbing hover:border-zinc-700 transition-colors",

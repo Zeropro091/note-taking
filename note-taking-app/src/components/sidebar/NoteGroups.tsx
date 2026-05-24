@@ -162,7 +162,7 @@ export default function NoteGroups({
             return (
               <div key={group.name} className="mb-1">
                 {/* Group Header */}
-                <button
+                <button aria-label={`Toggle group ${group.name}`}
                   onClick={() => toggleGroup(group.name)}
                   className={cn(
                     'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors',
@@ -197,7 +197,7 @@ export default function NoteGroups({
                       {group.notes.map((note) => {
                         const isSelected = selectedId === note.id;
                         return (
-                          <button
+                          <button aria-label={`Select note ${note.path}`}
                             key={note.id}
                             onClick={() => onNoteSelect(note.path)}
                             className={cn(

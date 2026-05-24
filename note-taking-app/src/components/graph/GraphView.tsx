@@ -300,7 +300,7 @@ export default function GraphView({
             <span className="text-sm font-medium">Filter by tag</span>
           </div>
           <div className="flex flex-wrap gap-1">
-            <button
+            <button aria-label="Show all tags"
               onClick={() => {
                 setFilterTag(null);
                 if (isIsolated) resetGraph();
@@ -316,7 +316,7 @@ export default function GraphView({
               All
             </button>
             {allTags.map((tag) => (
-              <button
+              <button aria-label={`Toggle filter for tag ${tag}`}
                 key={tag}
                 onClick={() => {
                   setFilterTag(filterTag === tag ? null : tag);
@@ -429,7 +429,7 @@ export default function GraphView({
                 <FileText className="w-4 h-4 text-blue-400" />
                 <span className="text-sm font-semibold text-zinc-200">Note Details</span>
               </div>
-              <button
+              <button aria-label="Close info panel"
                 onClick={closeInfoPanel}
                 className="text-zinc-500 hover:text-zinc-300 transition-colors"
               >
