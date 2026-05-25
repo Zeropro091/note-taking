@@ -1,0 +1,3 @@
+## 2024-05-25 - React Force Graph 2D Optimization
+**Learning:** Wrapping `currentData` in a `useMemo` avoids exhaustive-deps warnings in `react-force-graph-2d` and reduces unnecessary graph rerenders, leading to major performance improvements. Also, edge filtering using `Array.find` introduces an O(N*E) bottleneck, which is resolved by using an O(1) Set lookup, making it an O(N+E) operation.
+**Action:** Always wrap data configurations passed to visual components (like `react-force-graph-2d`) inside `useMemo`, and pre-compute sets of valid nodes when filtering edges rather than doing inline `.find()` searches.
