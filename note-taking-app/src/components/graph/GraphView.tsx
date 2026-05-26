@@ -305,8 +305,9 @@ export default function GraphView({
                 setFilterTag(null);
                 if (isIsolated) resetGraph();
               }}
+              aria-pressed={filterTag === null}
               className={`
-                text-xs px-2 py-1 rounded transition-colors
+                text-xs px-2 py-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none
                 ${filterTag === null
                   ? 'bg-blue-600 text-white'
                   : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
@@ -322,8 +323,9 @@ export default function GraphView({
                   setFilterTag(filterTag === tag ? null : tag);
                   if (isIsolated) resetGraph();
                 }}
+                aria-pressed={filterTag === tag}
                 className={`
-                  text-xs px-2 py-1 rounded transition-colors
+                  text-xs px-2 py-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none
                   ${filterTag === tag
                     ? 'bg-blue-600 text-white'
                     : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
@@ -431,7 +433,8 @@ export default function GraphView({
               </div>
               <button
                 onClick={closeInfoPanel}
-                className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                aria-label="Close note details"
+                className="text-zinc-500 hover:text-zinc-300 transition-colors rounded focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
               >
                 <X className="w-4 h-4" />
               </button>
