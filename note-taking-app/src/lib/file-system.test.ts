@@ -46,8 +46,8 @@ describe('validateNoteId', () => {
   });
 
   it('should allow path traversal attempts that resolve within the directory after stripping', () => {
-    // 'folder/../../note' becomes 'folder///note' after stripping '..'
-    expect(validateNoteId('folder/../../note')).toBe(true);
+    // 'folder/subfolder/../../note' stays within the directory
+    expect(validateNoteId('folder/subfolder/../../note')).toBe(true);
   });
 
   it('should handle Windows-style path traversal attempts', () => {
