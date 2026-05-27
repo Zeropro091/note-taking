@@ -370,8 +370,9 @@ export default function Home() {
               {sidebarTabsCollapsed ? (
                 // Minimized tabs - single row with icons
                 <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-800 bg-zinc-900/50">
-                  <div className="flex gap-1">
+                  <div className="flex gap-1" role="tablist">
                     <button
+                      role="tab"
                       onClick={() => setActiveSidebarTab('files')}
                       className={cn(
                         'p-1.5 rounded transition-colors',
@@ -380,10 +381,13 @@ export default function Home() {
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
                       title="Files"
+                      aria-label="Files tab"
+                      aria-selected={activeSidebarTab === 'files'}
                     >
                       <Files className="w-4 h-4" />
                     </button>
                     <button
+                      role="tab"
                       onClick={() => setActiveSidebarTab('groups')}
                       className={cn(
                         'p-1.5 rounded transition-colors',
@@ -392,6 +396,8 @@ export default function Home() {
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
                       title="Groups"
+                      aria-label="Groups tab"
+                      aria-selected={activeSidebarTab === 'groups'}
                     >
                       <FolderOpen className="w-4 h-4" />
                     </button>
@@ -400,6 +406,8 @@ export default function Home() {
                     onClick={() => setSidebarTabsCollapsed(false)}
                     className="p-1 text-zinc-500 hover:text-zinc-400 transition-colors"
                     title="Expand tabs"
+                    aria-label="Expand sidebar tabs"
+                    aria-expanded={false}
                   >
                     <ChevronDown className="w-4 h-4" />
                   </button>
@@ -407,16 +415,20 @@ export default function Home() {
               ) : (
                 // Expanded tabs - full width
                 <div className="flex items-center border-b border-zinc-800">
-                  <div className="flex flex-1">
+                  <div className="flex flex-1" role="tablist">
                     <button
+                      role="tab"
                       onClick={() => setActiveSidebarTab('files')}
                       className={getTabClassName(activeSidebarTab === 'files')}
+                      aria-selected={activeSidebarTab === 'files'}
                     >
                       Files
                     </button>
                     <button
+                      role="tab"
                       onClick={() => setActiveSidebarTab('groups')}
                       className={getTabClassName(activeSidebarTab === 'groups')}
+                      aria-selected={activeSidebarTab === 'groups'}
                     >
                       Groups
                     </button>
@@ -425,6 +437,8 @@ export default function Home() {
                     onClick={() => setSidebarTabsCollapsed(true)}
                     className="px-2 py-2 text-zinc-500 hover:text-zinc-400 transition-colors"
                     title="Minimize tabs"
+                    aria-label="Minimize sidebar tabs"
+                    aria-expanded={true}
                   >
                     <ChevronUp className="w-4 h-4" />
                   </button>
@@ -540,8 +554,9 @@ export default function Home() {
               {rightTabsCollapsed ? (
                 // Minimized tabs - single row with icons
                 <div className="flex items-center justify-between px-2 py-1 border-b border-zinc-800 bg-zinc-900/50">
-                  <div className="flex gap-1">
+                  <div className="flex gap-1" role="tablist">
                     <button
+                      role="tab"
                       onClick={() => setActiveRightTab('backlinks')}
                       className={cn(
                         'p-1.5 rounded transition-colors',
@@ -550,10 +565,13 @@ export default function Home() {
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
                       title="Backlinks"
+                      aria-label="Backlinks tab"
+                      aria-selected={activeRightTab === 'backlinks'}
                     >
                       <Link2 className="w-4 h-4" />
                     </button>
                     <button
+                      role="tab"
                       onClick={() => setActiveRightTab('outline')}
                       className={cn(
                         'p-1.5 rounded transition-colors',
@@ -562,10 +580,13 @@ export default function Home() {
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
                       title="Outline"
+                      aria-label="Outline tab"
+                      aria-selected={activeRightTab === 'outline'}
                     >
                       <List className="w-4 h-4" />
                     </button>
                     <button
+                      role="tab"
                       onClick={() => setActiveRightTab('tags')}
                       className={cn(
                         'p-1.5 rounded transition-colors',
@@ -574,6 +595,8 @@ export default function Home() {
                           : 'text-zinc-500 hover:text-zinc-400'
                       )}
                       title="Tags"
+                      aria-label="Tags tab"
+                      aria-selected={activeRightTab === 'tags'}
                     >
                       <TagsIcon className="w-4 h-4" />
                     </button>
@@ -582,6 +605,8 @@ export default function Home() {
                     onClick={() => setRightTabsCollapsed(false)}
                     className="p-1 text-zinc-500 hover:text-zinc-400 transition-colors"
                     title="Expand tabs"
+                    aria-label="Expand right sidebar tabs"
+                    aria-expanded={false}
                   >
                     <ChevronDown className="w-4 h-4" />
                   </button>
@@ -589,22 +614,28 @@ export default function Home() {
               ) : (
                 // Expanded tabs - full width
                 <div className="flex items-center border-b border-zinc-800">
-                  <div className="flex flex-1">
+                  <div className="flex flex-1" role="tablist">
                     <button
+                      role="tab"
                       onClick={() => setActiveRightTab('backlinks')}
                       className={getTabClassName(activeRightTab === 'backlinks')}
+                      aria-selected={activeRightTab === 'backlinks'}
                     >
                       Backlinks
                     </button>
                     <button
+                      role="tab"
                       onClick={() => setActiveRightTab('outline')}
                       className={getTabClassName(activeRightTab === 'outline')}
+                      aria-selected={activeRightTab === 'outline'}
                     >
                       Outline
                     </button>
                     <button
+                      role="tab"
                       onClick={() => setActiveRightTab('tags')}
                       className={getTabClassName(activeRightTab === 'tags')}
+                      aria-selected={activeRightTab === 'tags'}
                     >
                       Tags
                     </button>
@@ -613,6 +644,8 @@ export default function Home() {
                     onClick={() => setRightTabsCollapsed(true)}
                     className="px-2 py-2 text-zinc-500 hover:text-zinc-400 transition-colors"
                     title="Minimize tabs"
+                    aria-label="Minimize right sidebar tabs"
+                    aria-expanded={true}
                   >
                     <ChevronUp className="w-4 h-4" />
                   </button>
