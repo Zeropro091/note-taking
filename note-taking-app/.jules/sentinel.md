@@ -1,0 +1,4 @@
+## 2025-05-27 - [Path Traversal]
+**Vulnerability:** The POSIX backslash bypass vulnerability in `validateNoteId` implementation allowed the evasion of standard path traversal checks using malformed Windows-style separators in UNIX environments. A malicious id like `..\\..\\etc/passwd` would successfully evade standard path checks.
+**Learning:** `path.resolve` handles backslashes dynamically based on the OS it's executing on. On a POSIX system, `path.resolve` treats backslashes differently and can interpret them safely to start, but later logic could treat them maliciously or other tools processing the paths could normalize it to standard slashes and thus bypass `path.resolve`'s initial validation and cause traversal.
+**Prevention:** Always normalize the backslashes (`\`) to forward slashes (`/`) *before* resolving and validating relative paths using standard APIs like `path.resolve` and `path.relative`.
