@@ -1,0 +1,3 @@
+## 2024-05-28 - Missing ARIA Labels on Icon-only Overlay Buttons
+**Learning:** Icon-only buttons used in graph visualization overlays (like zoom, reset, pause, and fullscreen) are completely opaque to screen readers when they only rely on a generic `title` attribute without proper `aria-label` or `aria-pressed` states.
+**Action:** Always add explicit `aria-label` attributes to icon-only buttons, and use `aria-pressed` for toggle states (e.g., pause, isolate, fullscreen). Ensure standard `<button>` tags (like the info panel close button) include explicit focus-visible utility classes for keyboard accessibility.
