@@ -1,0 +1,7 @@
+## 2026-05-28 - Path Traversal Defense-in-Depth
+
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` where Windows-style backslashes (`\`) could be used to bypass path resolution checks, as `path.resolve` on a POSIX system might not interpret `\` as a directory separator, leading to unsafe traversal being missed during validation but correctly evaluated later by underlying file operations, or by simply stripping `..` and having a valid relative path `folder/../note` resolve to `note` which stays within the directory but bypasses intended folder structures.
+
+**Learning:** Relying solely on `path.resolve` and `path.relative` with OS-specific path parsing logic can lead to vulnerabilities when input contains mixed separators (like backslashes on a Unix system) or `..` segments that ultimately resolve inside the target directory after normalisation, which might bypass structural access restrictions or result in unexpected files being returned. Simply validating if the end result is in the correct directory is not enough; explicit traversal syntax should be rejected.
+
+**Prevention:** Normalize backslashes to forward slashes BEFORE resolving the path relative to the base directory. As a defense-in-depth measure, explicitly reject any IDs containing `..` to prevent traversal attempts outright, even if they appear to resolve safely within the base directory.
