@@ -1,7 +1,7 @@
 'use client';
 
 // Graph visualization component with enhanced interactivity
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { GraphData as FGData } from 'react-force-graph-2d';
 import * as d3 from 'd3-force';
@@ -37,33 +37,39 @@ export default function GraphView({
     return notes.find((n) => n.id === nodeId);
   }, [notes]);
 
-  // Save current graph data before isolation
-  const currentData: FGData = {
-    nodes: graph.nodes
+  // Save current graph data before isolation, wrapped in useMemo for performance
+  const currentData: FGData = useMemo(() => {
+    // Determine the visible set of nodes to optimize edge lookup (O(N) instead of O(N*E))
+    const visibleNodeIds = new Set<string>();
+
+    const nodes = graph.nodes
       .filter((node) => {
-        if (!filterTag) return true;
-        return node.tags.includes(filterTag);
+        const isVisible = !filterTag || node.tags.includes(filterTag);
+        if (isVisible) {
+          visibleNodeIds.add(node.id);
+        }
+        return isVisible;
       })
       .map((node) => ({
         id: node.id,
         name: node.label,
         val: node.tags.length + 1,
         color: node.id === selectedNodeId ? '#3b82f6' : getColorForTags(node.tags),
-      })),
-    links: graph.edges
+      }));
+
+    const links = graph.edges
       .filter((edge) => {
         if (!filterTag) return true;
-        const sourceNode = graph.nodes.find((n) => n.id === edge.source);
-        const targetNode = graph.nodes.find((n) => n.id === edge.target);
-        return (
-          sourceNode?.tags.includes(filterTag) || targetNode?.tags.includes(filterTag)
-        );
+        // Optimization: O(1) Set lookup instead of O(N) array find
+        return visibleNodeIds.has(edge.source) || visibleNodeIds.has(edge.target);
       })
       .map((edge) => ({
         source: edge.source,
         target: edge.target,
-      })),
-  };
+      }));
+
+    return { nodes, links };
+  }, [graph.nodes, graph.edges, filterTag, selectedNodeId]);
 
   // Use isolated data if available, otherwise use filtered currentData
   const displayData = isolatedData || currentData;
