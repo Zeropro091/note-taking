@@ -1,0 +1,7 @@
+## 2024-05-29 - Path Traversal Vulnerability in validateNoteId
+
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` where paths like `folder/../../note` could potentially bypass naive string replacement and resolve to a valid path if the system automatically stripped `..` elements, though the explicit `validateNoteId` validation attempted to be robust by checking `.startsWith('..')` on the relative path. However, explicitly missing the rejection of `..` strings left a potential gap for complex combinations. More significantly, failing to normalize backslashes (`\`) before path resolution could allow evasion of path traversal checks on POSIX systems while testing or porting.
+
+**Learning:** Relying solely on `path.relative` to detect path traversals can be risky, especially across different operating systems. Attackers can combine slashes, backslashes, and dot-dots to find bypasses. An explicit rejection is often necessary for defense-in-depth. Also, backslashes must be normalized early, because `path.resolve` on a non-Windows OS might treat `..\\..\\` as a literal filename rather than traversal, leading to unexpected bypassing of checks downstream if the system processes the string differently later.
+
+**Prevention:** Normalize backslashes to forward slashes *before* resolving the relative path. As a defense-in-depth measure, explicitly reject any note ID string containing `..` unconditionally, ensuring path traversal attempts are stopped at the perimeter before involving complex standard library path logic.
