@@ -1,0 +1,3 @@
+## 2024-05-31 - Memoize React Force Graph derived state
+**Learning:** React components dealing with heavy derived state (like mapping/filtering nodes and edges for `react-force-graph-2d`) suffer severe frame drops if recalculated on every render (e.g., during mouse hover events). Furthermore, filtering edges using `.find()` inside a loop introduces O(N*E) complexity which exacerbates the lag.
+**Action:** Always wrap heavy derived graph state objects (`nodes` and `links`) in `useMemo`. When filtering edges based on connected nodes, precompute a `Set` of valid node IDs to reduce lookup time complexity to O(N+E).
