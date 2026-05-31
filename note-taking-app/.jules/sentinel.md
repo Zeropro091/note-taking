@@ -1,0 +1,4 @@
+## 2024-05-24 - Path Traversal Vulnerability in `validateNoteId`
+**Vulnerability:** A path traversal bypass was discovered in `validateNoteId` where using `..` in paths that resolved *within* the base directory could bypass safety checks but might behave unexpectedly when paths are sanitized or processed later. Specifically, Windows paths using `\` were not fully normalized before processing.
+**Learning:** Checking for `..` explicitly is a critical defense-in-depth measure. Normalizing backslashes to forward slashes *before* applying path checks is necessary to prevent POSIX traversal bypasses via Windows formatting.
+**Prevention:** Always normalize paths (`id.replace(/\\/g, '/')`) and explicitly reject any `..` sequences in file IDs, rather than solely relying on `path.resolve` and `path.relative` checking if it breaks out of the base directory.
