@@ -1,0 +1,4 @@
+## 2024-06-01 - Prevent Path Traversal in Note IDs
+**Vulnerability:** Path traversal in `validateNoteId` by supplying `folder/../../passwd`, which was normalized incorrectly due to not stripping out `..` strings, allowing writing/reading files outside the designated `NOTES_DIR`.
+**Learning:** Checking relative path safety must include explicitly refusing traversing constructs such as `..` or validating the final normalized path strictly against the base directory without allowing bypasses. `path.resolve` automatically evaluates `..` before the containment check, but `id.replace` and standard sanitization was incomplete. The most reliable fix prevents `..` upfront.
+**Prevention:** Always normalize paths and strictly reject sequences like `..` immediately upon validation when dealing with file identifiers.
