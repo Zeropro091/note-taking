@@ -1,0 +1,4 @@
+## 2024-06-02 - [Path Traversal in validateNoteId]
+**Vulnerability:** A path traversal bypass was possible when handling Windows backslashes (e.g. `..\..\..\etc\passwd`) in Node.js applications running on Linux environments, and when an input containing `..` resolved back into the permitted directory, allowing confusing structures that might still be misparsed later.
+**Learning:** Checking `relative.startsWith('..')` is insufficient alone if an attacker uses Windows-style backslashes `\` because `path.resolve` on non-Windows systems won't normalize backslashes. It is more secure to explicitly normalize backslashes to forward slashes BEFORE resolving paths and strongly rejecting `..` as a defense-in-depth measure.
+**Prevention:** Always normalize `\` to `/` before doing path calculations and explicitly reject any sequence of `..` in user input handling file IDs.
