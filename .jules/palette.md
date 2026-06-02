@@ -1,0 +1,5 @@
+## 2024-06-02 - Collapsible Group Headers Accessibility
+
+**Learning:** When implementing collapsible/accordion group headers (like in `NoteGroups.tsx`), it's critical to include `aria-expanded` and `aria-controls` on the toggle button, along with a corresponding `id` on the content container to ensure screen readers understand the relationship and state of the collapsible region. Furthermore, keyboard navigation visibility using classes like `focus-visible:ring-2 focus-visible:outline-none` is essential for keyboard accessibility so users are aware of the active focus area when tabbing through.
+
+**Action:** Whenever building an accordion, collapsible folder, or group UI, systematically map out the target content container using deterministic IDs based on the group identifier (e.g. `id="group-content-MyGroup"`) and link it to the button using `aria-controls`. Ensure `aria-expanded` accurately reflects the visible state, and provide visual indicators for keyboard focus without relying on pointer hover alone.
