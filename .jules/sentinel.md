@@ -1,0 +1,4 @@
+## 2024-06-02 - Path Traversal Vulnerability Bypass
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` despite checking for `..`. It was possible to bypass the checks using Windows-style backslashes `..\\..\\` and path manipulation, which `path.resolve` normalizes.
+**Learning:** `path.resolve` evaluates backslashes differently depending on the operating system. If you just check `relative.startsWith('..')`, an attacker can use `..\\` on non-Windows environments which might be passed through validation but evaluated as traversal in other contexts, or bypass simple regexes. Always normalize all slashes to `/` before doing any string checks or resolution logic.
+**Prevention:** Normalize backslashes to forward slashes BEFORE resolving paths (`id.replace(/\\/g, '/')`). Explicitly reject any input containing `..` regardless of whether it resolves safely, as a defense-in-depth measure.
