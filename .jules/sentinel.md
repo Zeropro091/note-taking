@@ -1,0 +1,5 @@
+## 2024-05-24 - Path Traversal Bypass via Backslashes
+
+**Vulnerability:** The `validateNoteId` function in `src/lib/file-system.ts` allowed path traversal bypasses because it didn't normalize backslashes before validation, nor did it strictly reject `..` segments (instead relying on `path.resolve` and `path.relative` which can have edge cases or behave differently across platforms).
+**Learning:** `path.resolve` and `path.relative` on non-Windows platforms do not handle backslashes (`\`) as directory separators, meaning a path like `..\..\etc\passwd` might bypass checks and be treated as a valid filename if not normalized first, potentially causing issues if the data is later used on Windows or in different contexts. Relying solely on `path.relative` for traversal protection is risky; defense-in-depth by rejecting traversal characters early is safer.
+**Prevention:** Always normalize path separators early. Implement explicit defense-in-depth by rejecting paths that contain `..` directly, rather than solely relying on path resolution results to determine safety.
