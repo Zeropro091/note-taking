@@ -1,0 +1,4 @@
+## 2024-06-03 - Path Traversal bypass in file-system.ts
+**Vulnerability:** A critical path traversal vulnerability existed in `validateNoteId` because `path.resolve` on POSIX systems doesn't process backslashes correctly, while a subsequent `sanitizeNoteId` function converts those backslashes to forward slashes. This allowed inputs like `folder/..\..\..\..\etc\passwd` to bypass the initial check but still evaluate to arbitrary files.
+**Learning:** Operating system differences in path handling combined with inconsistent sanitization can create path traversal bypass vulnerabilities.
+**Prevention:** Always normalize path separators to forward slashes before performing path resolution checks. Furthermore, as a defense-in-depth measure, strictly reject any input containing ".." rather than just relying on `path.relative`.
