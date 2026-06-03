@@ -1,0 +1,3 @@
+## 2024-06-03 - Note Groups Accordion Accessibility
+**Learning:** Custom UI elements like accordions (such as those used in `NoteGroups.tsx`) require proper ARIA attributes to be fully accessible, specifically `aria-expanded` and `aria-controls` on the toggle button and a matching `id` on the content container. Without these, screen readers and keyboard users lack context about state changes.
+**Action:** Always verify that toggle-style buttons managing expanding content include `aria-expanded` reflecting the current state, `aria-controls` mapped to the corresponding content container `id`, and ensure focus visibility with `focus-visible:ring-2 focus-visible:outline-none`.
