@@ -1,0 +1,3 @@
+## 2024-06-03 - [Memoize Graph Data and Optimize Edge Filtering]
+**Learning:** Pre-computing edge node mappings (`Set<string>`) changed complex graph filtering overhead from O(N*E) to O(N+E). In highly interactive React components dealing with large network structures (like ForceGraph2D), caching derived layout data via `useMemo` protects against catastrophic re-render thrashing induced by simple UI state changes like mouse movement (`hoveredNode`).
+**Action:** When filtering graphs with high edge density based on node properties in React, wrap derived graph configurations in `useMemo` and precompute `Set` indexes for node existence lookups to prevent unbounded time complexity during render cycles.
