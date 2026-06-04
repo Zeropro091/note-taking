@@ -1,0 +1,4 @@
+## 2025-01-20 - Path Traversal bypass via Backslash Normalization Order
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` where a payload like `folder/..\..\etc\passwd` would pass the `path.relative` check (because it seemingly resolved within the directory) but was later altered by `replace(/\\/g, '/')` in `sanitizeNoteId`. The late normalization transformed it into `folder/../../etc/passwd` during file access, effectively escaping the restricted directory.
+**Learning:** Input normalization must happen *before* validation. When validation checks one string, but the downstream logic uses a modified version of it, the difference can often be exploited (a Time-of-Check to Time-of-Use logic gap).
+**Prevention:** Normalize backslashes to forward slashes immediately at the start of validation functions. As a defense-in-depth measure, explicitly reject '..' traversal patterns before calling path resolution APIs.
