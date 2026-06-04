@@ -22,10 +22,20 @@ export function validateNoteId(id: string): boolean {
     return false;
   }
 
+  // Normalize backslashes to forward slashes BEFORE resolving
+  // to prevent Windows-style traversal bypasses when path.resolve is used
+  const normalizedId = id.replace(/\\/g, '/');
+
+  // Defense in depth: explicitly reject any '..' to prevent path traversal attempts entirely,
+  // even if they appear to resolve safely within the directory.
+  if (normalizedId.split('/').includes('..')) {
+    return false;
+  }
+
   // Use path.resolve to get the absolute path
   // We resolve the id relative to NOTES_DIR.
   // If id is absolute, resolve will return it as is (or relative to root).
-  const resolvedPath = path.resolve(NOTES_DIR, id + '.md');
+  const resolvedPath = path.resolve(NOTES_DIR, normalizedId + '.md');
 
   // Use path.relative to see if the resolved path is truly within NOTES_DIR
   const relative = path.relative(NOTES_DIR, resolvedPath);
