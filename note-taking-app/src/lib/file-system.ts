@@ -22,10 +22,20 @@ export function validateNoteId(id: string): boolean {
     return false;
   }
 
+  // Normalize backslashes to forward slashes BEFORE resolving the path
+  // to prevent Windows path separator bypasses
+  const normalizedId = id.replace(/\\/g, '/');
+
+  // As a defense-in-depth measure, explicitly reject any IDs containing '..'
+  // to prevent traversal attempts
+  if (normalizedId.includes('..')) {
+    return false;
+  }
+
   // Use path.resolve to get the absolute path
   // We resolve the id relative to NOTES_DIR.
   // If id is absolute, resolve will return it as is (or relative to root).
-  const resolvedPath = path.resolve(NOTES_DIR, id + '.md');
+  const resolvedPath = path.resolve(NOTES_DIR, normalizedId + '.md');
 
   // Use path.relative to see if the resolved path is truly within NOTES_DIR
   const relative = path.relative(NOTES_DIR, resolvedPath);
@@ -60,7 +70,7 @@ function sanitizeNoteId(id: string): string {
  * @param tags - Tags from frontmatter (can be various types)
  * @returns Array of string tags
  */
-function normalizeTags(tags: any): string[] {
+function normalizeTags(tags: unknown): string[] {
   if (!tags) return [];
 
   // If it's already an array of strings, return it
@@ -155,7 +165,7 @@ export async function getNoteById(id: string): Promise<Note | null> {
 }
 
 // Create or update a note
-export async function saveNote(id: string, content: string, frontmatter?: Record<string, any>): Promise<Note> {
+export async function saveNote(id: string, content: string, frontmatter?: Record<string, unknown>): Promise<Note> {
   // Validate ID to prevent path traversal
   if (!validateNoteId(id)) {
     throw new Error(`Invalid note ID: ${id}`);
