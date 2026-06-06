@@ -1,0 +1,4 @@
+## 2024-05-23 - Path Traversal Bypass via Backslashes
+**Vulnerability:** A path traversal bypass was discovered in `validateNoteId` where an attacker could use backslashes (`\`) on POSIX systems to evade simple `..` rejection, as `path.resolve` normalizes them but the input validation missed them before resolution.
+**Learning:** `path.relative` combined with `path.resolve` is insufficient if the original string uses mixed slash conventions (like Windows-style backslashes on a Unix system) that slip past simplistic regexes or checks before `path.resolve` normalizes them to `/` internally.
+**Prevention:** Normalize backslashes to forward slashes *before* performing security validation and resolving the path. In addition, explicitly reject inputs containing `..` rather than just relying on `path.relative` not starting with `..`, applying defense-in-depth against directory traversal escapes.
