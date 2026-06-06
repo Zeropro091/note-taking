@@ -1,7 +1,7 @@
 'use client';
 
 // Graph visualization component with enhanced interactivity
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { GraphData as FGData } from 'react-force-graph-2d';
 import * as d3 from 'd3-force';
@@ -38,7 +38,7 @@ export default function GraphView({
   }, [notes]);
 
   // Save current graph data before isolation
-  const currentData: FGData = {
+  const currentData: FGData = useMemo(() => ({
     nodes: graph.nodes
       .filter((node) => {
         if (!filterTag) return true;
@@ -63,7 +63,7 @@ export default function GraphView({
         source: edge.source,
         target: edge.target,
       })),
-  };
+  }), [graph, filterTag, selectedNodeId]);
 
   // Use isolated data if available, otherwise use filtered currentData
   const displayData = isolatedData || currentData;
