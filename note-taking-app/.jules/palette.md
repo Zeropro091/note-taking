@@ -1,0 +1,3 @@
+## 2024-06-07 - Improved NoteGroups Accessibility
+**Learning:** Collapsible components without proper ARIA attributes (`aria-expanded` and `aria-controls`) significantly hinder screen reader users' understanding of the interface structure and state. Also, relying solely on default browser focus rings is often insufficient for consistent visual feedback across elements inside Next.js/Tailwind components.
+**Action:** Always add explicit `focus-visible` Tailwind classes (like `focus-visible:ring-2 focus-visible:outline-none`) to interactive elements, and pair `aria-expanded` attributes on toggle buttons with matching `id`s on their controlled content containers.
