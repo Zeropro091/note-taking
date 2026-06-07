@@ -1,0 +1,4 @@
+## 2025-03-01 - Fix Path Traversal Vulnerability
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` where `folder/../../note` bypassed validation but was resolved to `note-taking-app/data/notes/note.md` effectively permitting arbitrary directory traversal if the resulting path lands in an existing, valid parent directory, or higher.
+**Learning:** Checking for '..' during traversal prevention is not just an indicator but a key component in robust validation routines. Stripping characters using replace in sanitize doesn't correctly block payloads, it only alters them, leading to unpredictable traversal outcomes or bypasses.
+**Prevention:** Explicitly deny '..' occurrences during validation and systematically normalize backslash paths to forward slashes before any logic handles path resolution, treating path input sanitization strictly instead of permissively transforming malicious input.
