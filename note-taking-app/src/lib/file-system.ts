@@ -1,10 +1,10 @@
 // File system utilities for markdown notes
-import fs from 'fs/promises';
-import path from 'path';
-import matter from 'gray-matter';
-import type { Note, FileNode } from '@/types/notes';
+import fs from "fs/promises";
+import path from "path";
+import matter from "gray-matter";
+import type { Note, FileNode } from "@/types/notes";
 
-const NOTES_DIR = path.join(process.cwd(), 'data', 'notes');
+const NOTES_DIR = path.join(process.cwd(), "data", "notes");
 
 /**
  * Validate note ID to prevent path traversal attacks
@@ -13,7 +13,7 @@ const NOTES_DIR = path.join(process.cwd(), 'data', 'notes');
  */
 export function validateNoteId(id: string): boolean {
   // Reject empty IDs
-  if (!id || typeof id !== 'string') {
+  if (!id || typeof id !== "string") {
     return false;
   }
 
@@ -22,16 +22,26 @@ export function validateNoteId(id: string): boolean {
     return false;
   }
 
+  // Explicitly reject any IDs containing '..' to prevent traversal attempts
+  if (id.includes("..")) {
+    return false;
+  }
+
+  // Normalize backslashes to forward slashes BEFORE resolving the path
+  const normalizedId = id.replace(/\\/g, "/");
+
   // Use path.resolve to get the absolute path
   // We resolve the id relative to NOTES_DIR.
   // If id is absolute, resolve will return it as is (or relative to root).
-  const resolvedPath = path.resolve(NOTES_DIR, id + '.md');
+  const resolvedPath = path.resolve(NOTES_DIR, normalizedId + ".md");
 
   // Use path.relative to see if the resolved path is truly within NOTES_DIR
   const relative = path.relative(NOTES_DIR, resolvedPath);
 
   // A safe relative path should not start with '..' and should not be absolute
-  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+  return (
+    relative !== "" && !relative.startsWith("..") && !path.isAbsolute(relative)
+  );
 }
 
 /**
@@ -44,15 +54,15 @@ function sanitizeNoteId(id: string): string {
   // Instead, we validate and return the input if it's safe,
   // or a strictly sanitized version.
   if (validateNoteId(id)) {
-    return id.replace(/\\/g, '/');
+    return id.replace(/\\/g, "/");
   }
 
   // If it fails validation, we return a version that is definitely safe by stripping
   // everything that could be a path separator or traversal
   return id
-    .replace(/[\\\/]/g, '_')
-    .replace(/\.\./g, '__')
-    .replace(/[<>:"|?*\x00-\x1f]/g, '');
+    .replace(/[\\\/]/g, "_")
+    .replace(/\.\./g, "__")
+    .replace(/[<>:"|?*\x00-\x1f]/g, "");
 }
 
 /**
@@ -71,7 +81,7 @@ function normalizeTags(tags: any): string[] {
   }
 
   // If it's a single value, convert to array
-  if (typeof tags === 'string') {
+  if (typeof tags === "string") {
     return [tags];
   }
 
@@ -93,7 +103,7 @@ export async function getAllNotes(): Promise<Note[]> {
   await ensureNotesDir();
   const notes: Note[] = [];
 
-  async function walkDir(dirPath: string, relativePath = '') {
+  async function walkDir(dirPath: string, relativePath = "") {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -102,15 +112,15 @@ export async function getAllNotes(): Promise<Note[]> {
 
       if (entry.isDirectory()) {
         await walkDir(fullPath, relPath);
-      } else if (entry.name.endsWith('.md')) {
-        const content = await fs.readFile(fullPath, 'utf-8');
+      } else if (entry.name.endsWith(".md")) {
+        const content = await fs.readFile(fullPath, "utf-8");
         const { data, content: markdown } = matter(content);
         const stats = await fs.stat(fullPath);
 
         notes.push({
-          id: relPath.replace(/\.md$/, ''),
+          id: relPath.replace(/\.md$/, ""),
           path: relPath,
-          title: data.title || entry.name.replace(/\.md$/, ''),
+          title: data.title || entry.name.replace(/\.md$/, ""),
           content: markdown,
           frontmatter: data,
           tags: normalizeTags(data.tags),
@@ -135,7 +145,7 @@ export async function getNoteById(id: string): Promise<Note | null> {
   const safeId = sanitizeNoteId(id);
   const notePath = path.join(NOTES_DIR, `${safeId}.md`);
   try {
-    const content = await fs.readFile(notePath, 'utf-8');
+    const content = await fs.readFile(notePath, "utf-8");
     const { data, content: markdown } = matter(content);
     const stats = await fs.stat(notePath);
 
@@ -155,7 +165,11 @@ export async function getNoteById(id: string): Promise<Note | null> {
 }
 
 // Create or update a note
-export async function saveNote(id: string, content: string, frontmatter?: Record<string, any>): Promise<Note> {
+export async function saveNote(
+  id: string,
+  content: string,
+  frontmatter?: Record<string, any>,
+): Promise<Note> {
   // Validate ID to prevent path traversal
   if (!validateNoteId(id)) {
     throw new Error(`Invalid note ID: ${id}`);
@@ -179,7 +193,7 @@ export async function saveNote(id: string, content: string, frontmatter?: Record
   const notePath = path.join(NOTES_DIR, `${safeId}.md`);
 
   await fs.mkdir(path.dirname(notePath), { recursive: true });
-  await fs.writeFile(notePath, markdown, 'utf-8');
+  await fs.writeFile(notePath, markdown, "utf-8");
 
   return getNoteById(safeId) as Promise<Note>;
 }
@@ -200,7 +214,10 @@ export async function deleteNote(id: string): Promise<void> {
 export async function getFileTree(): Promise<FileNode[]> {
   await ensureNotesDir();
 
-  async function buildTree(dirPath: string, relativePath = ''): Promise<FileNode[]> {
+  async function buildTree(
+    dirPath: string,
+    relativePath = "",
+  ): Promise<FileNode[]> {
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
     const nodes: FileNode[] = [];
 
@@ -213,20 +230,20 @@ export async function getFileTree(): Promise<FileNode[]> {
         nodes.push({
           name: entry.name,
           path: relPath,
-          type: 'folder',
+          type: "folder",
           children,
         });
-      } else if (entry.name.endsWith('.md')) {
+      } else if (entry.name.endsWith(".md")) {
         nodes.push({
           name: entry.name,
           path: relPath,
-          type: 'file',
+          type: "file",
         });
       }
     }
 
     return nodes.sort((a, b) => {
-      if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+      if (a.type !== b.type) return a.type === "folder" ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
   }
@@ -235,7 +252,10 @@ export async function getFileTree(): Promise<FileNode[]> {
 }
 
 // Create a new note
-export async function createNote(notePath: string, title: string): Promise<Note> {
+export async function createNote(
+  notePath: string,
+  title: string,
+): Promise<Note> {
   // Validate path to prevent path traversal
   if (!validateNoteId(notePath)) {
     throw new Error(`Invalid note path: ${notePath}`);
@@ -250,7 +270,7 @@ export async function createNote(notePath: string, title: string): Promise<Note>
     updated: now,
   };
 
-  const safePath = sanitizeNoteId(notePath).replace(/\.md$/, '');
+  const safePath = sanitizeNoteId(notePath).replace(/\.md$/, "");
   return saveNote(safePath, content, frontmatter);
 }
 
