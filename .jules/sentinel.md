@@ -1,0 +1,4 @@
+## 2025-05-24 - Path Traversal in Note IDs
+**Vulnerability:** The application allowed directory path traversal in note IDs. The validation relied on `path.resolve` checking bounds, but Next.js/Node environments can bypass this using backslashes to resolve unexpected paths across the OS boundary or POSIX vs. Windows bounds differences. Additionally, there was a test literally expecting `..` traversals to pass if they bounded back in.
+**Learning:** `path.resolve` alone doesn't prevent all bounds violations especially in varied OS backends handling `\` vs `/`. `id.replace` should not be used as the primary sanitization, and the validation shouldn't allow explicit traverse operators.
+**Prevention:** Normalize all incoming user-controlled paths (`\` -> `/`) *before* resolving via `path.resolve` and enforce absolute rejection of `..` string inclusion in file IDs.
