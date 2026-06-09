@@ -1,0 +1,3 @@
+## 2024-06-09 - Memoize expensive graph data mapping in React components
+**Learning:** Frequent unmemoized complex data derivations mapping (like O(N*E) array filtering combining `edges` and `nodes` via `.find()`) inside components that manage frequent state changes like hover interactions (e.g., `react-force-graph-2d` bindings) causes significant and noticeable performance stutter during interaction.
+**Action:** Always wrap heavy derived data (like full-graph nodes and links mapping/filtering) in `useMemo`, and convert array-scanning operations like `nodes.find` into O(1) `Set` or `Map` lookups before iterating over secondary arrays.
