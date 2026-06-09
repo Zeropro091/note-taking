@@ -1,0 +1,4 @@
+## 2024-06-09 - Path Traversal Vulnerability Fix
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` where a backslash could be used to bypass the validation and read arbitrary files on some systems. Also, `..` was not explicitly rejected before path resolution.
+**Learning:** We should not rely on `path.relative` and `path.resolve` alone for security when dealing with unnormalized input. Some path components like `..` and `\` could slip through depending on the environment and how `path` module interprets it.
+**Prevention:** Always normalize file separators (e.g. backslash to forward slash) and explicitly reject any `..` patterns as a defense-in-depth measure BEFORE executing path operations, along with using `path.relative` checks to verify the resolved path remains inside the base directory.
