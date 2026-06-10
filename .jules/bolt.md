@@ -1,0 +1,4 @@
+
+## 2024-05-18 - Optimized Graph Node and Edge Lookups
+**Learning:** Found a performance bottleneck in the `GraphView.tsx` component where `currentData` was being re-computed on every render. This was particularly slow because checking edge connections against the filter required an `O(N)` `.find()` lookup over `graph.nodes` for both the source and target of every edge `O(E)`, resulting in an `O(N*E)` operation.
+**Action:** Always wrap expensive derived graph states (like `currentData` consisting of nodes and links) in `useMemo` to prevent exhaustive-deps warnings and redundant recalculations on frequent events like hover or state changes. When performing lookups within array `.filter()` or `.map()` methods (e.g., finding nodes associated with graph edges), optimize time complexity by precomputing a `Set` or `Map` of valid IDs before the loop. This reduces operations from `O(N*E)` to `O(N+E)`.
