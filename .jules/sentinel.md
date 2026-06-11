@@ -1,0 +1,5 @@
+
+## 2024-05-18 - Path Traversal Bypass on POSIX Systems via Backslashes
+**Vulnerability:** The `validateNoteId` function in `src/lib/file-system.ts` allowed POSIX path traversal bypasses. It used `path.resolve` and `path.relative` to enforce sandbox boundaries but failed to account for malicious IDs using Windows-style backslashes (e.g., `..\..\etc\passwd`). On POSIX systems, `path.resolve` treats `\` as regular filename characters, falsely passing the boundary check.
+**Learning:** Checking for traversal by relying purely on node's `path` package across platforms can be bypassed if the environment interprets separators differently than the user input implies. Explicitly normalizing backslashes (`\`) to forward slashes (`/`) before resolving is necessary on POSIX.
+**Prevention:** Normalize backslashes to forward slashes before applying `path.resolve`. Furthermore, as a defense-in-depth measure, explicitly reject IDs containing `..` strings, even if they seem to resolve inside the directory.
