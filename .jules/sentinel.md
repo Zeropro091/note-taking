@@ -1,0 +1,5 @@
+
+## 2025-06-12 - Fix Path Traversal Bypass in ID Validation
+**Vulnerability:** Path traversal bypass in `validateNoteId`. While basic input sanitization checked for invalid characters and `path.relative` was used, an attacker could bypass checks using backslashes (`\`) which aren't properly resolved across all environments, and `..` combinations could exploit flawed stripping logic in `sanitizeNoteId`.
+**Learning:** `path.resolve` handles path normalization and `..` combinations, but allowing `..` as input opens logic holes in how paths are processed later. `\`, when passed to some validation paths (particularly posix traversal implementations), can be ignored leading to escape from intended boundaries (e.g. `folder/..\\../etc/passwd` bypassed `validateNoteId`).
+**Prevention:** Always normalize all backslashes (`\`) to forward slashes (`/`) as the first step of validation. As a defense-in-depth measure, strictly reject *any* input containing `..` unconditionally, in addition to using `path.relative` boundary validation.
