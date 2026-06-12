@@ -1,38 +1,41 @@
-'use client';
+"use client";
 
 // Note groups component for organizing notes by tags/categories
-import { useState, useMemo } from 'react';
-import { File, ChevronDown, ChevronRight, Tag } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { Note } from '@/types/notes';
-import { cn } from '@/lib/utils';
+import { useState, useMemo } from "react";
+import { File, ChevronDown, ChevronRight, Tag } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import type { Note } from "@/types/notes";
+import { cn } from "@/lib/utils";
 
 // Category definitions with icons and colors
-export const PARA_CATEGORIES: Record<string, { tags: string[]; color: string; icon: string }> = {
-  'Projects': {
-    tags: ['project'],
-    color: '#3b82f6', // blue-500
-    icon: '🎯',
+export const PARA_CATEGORIES: Record<
+  string,
+  { tags: string[]; color: string; icon: string }
+> = {
+  Projects: {
+    tags: ["project"],
+    color: "#3b82f6", // blue-500
+    icon: "🎯",
   },
-  'Areas': {
-    tags: ['area'],
-    color: '#22c55e', // green-500
-    icon: '🪴',
+  Areas: {
+    tags: ["area"],
+    color: "#22c55e", // green-500
+    icon: "🪴",
   },
-  'Resources': {
-    tags: ['resource'],
-    color: '#eab308', // yellow-500
-    icon: '📚',
+  Resources: {
+    tags: ["resource"],
+    color: "#eab308", // yellow-500
+    icon: "📚",
   },
-  'Archives': {
-    tags: ['archive'],
-    color: '#6b7280', // gray-500
-    icon: '🗄️',
+  Archives: {
+    tags: ["archive"],
+    color: "#6b7280", // gray-500
+    icon: "🗄️",
   },
-  'General': {
+  General: {
     tags: [], // Default for notes without matching tags
-    color: '#6366f1', // indigo-500
-    icon: '📝',
+    color: "#6366f1", // indigo-500
+    icon: "📝",
   },
 };
 
@@ -55,7 +58,9 @@ export default function NoteGroups({
   selectedId,
   onNoteSelect,
 }: NoteGroupsProps) {
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['Projects', 'Areas']));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    new Set(["Projects", "Areas"]),
+  );
 
   // Group notes by category
   const groupedNotes = useMemo(() => {
@@ -63,11 +68,13 @@ export default function NoteGroups({
 
     // First, categorize notes
     for (const [categoryName, category] of Object.entries(PARA_CATEGORIES)) {
-      if (categoryName === 'General') continue; // Skip General, handle separately
+      if (categoryName === "General") continue; // Skip General, handle separately
 
       const categoryNotes = notes.filter((note) => {
         if (!note.tags || note.tags.length === 0) return false;
-        return note.tags.some((tag) => category.tags.includes(tag.toLowerCase()));
+        return note.tags.some((tag) =>
+          category.tags.includes(tag.toLowerCase()),
+        );
       });
 
       if (categoryNotes.length > 0) {
@@ -82,12 +89,14 @@ export default function NoteGroups({
     }
 
     // Find notes that weren't assigned to any category
-    const assignedNoteIds = new Set(groups.flatMap((g) => g.notes.map((n) => n.id)));
+    const assignedNoteIds = new Set(
+      groups.flatMap((g) => g.notes.map((n) => n.id)),
+    );
     const generalNotes = notes.filter((n) => !assignedNoteIds.has(n.id));
 
     if (generalNotes.length > 0) {
       groups.push({
-        name: 'General',
+        name: "General",
         icon: PARA_CATEGORIES.General.icon,
         color: PARA_CATEGORIES.General.color,
         notes: generalNotes,
@@ -138,7 +147,7 @@ export default function NoteGroups({
               <span
                 key={tag}
                 className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 transition-colors cursor-pointer"
-                title={`${count} note${count > 1 ? 's' : ''}`}
+                title={`${count} note${count > 1 ? "s" : ""}`}
               >
                 {tag}
               </span>
@@ -164,9 +173,11 @@ export default function NoteGroups({
                 {/* Group Header */}
                 <button
                   onClick={() => toggleGroup(group.name)}
+                  aria-expanded={isExpanded}
+                  aria-controls={`group-${group.name}`}
                   className={cn(
-                    'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors',
-                    'hover:bg-zinc-800 rounded mx-1'
+                    "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+                    "hover:bg-zinc-800 rounded mx-1 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-zinc-500",
                   )}
                   style={{ borderLeft: `3px solid ${group.color}` }}
                 >
@@ -188,10 +199,11 @@ export default function NoteGroups({
                 <AnimatePresence initial={false}>
                   {isExpanded && (
                     <motion.div
+                      id={`group-${group.name}`}
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
+                      animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
                       className="mt-1 space-y-0.5 overflow-hidden"
                     >
                       {group.notes.map((note) => {
@@ -201,11 +213,11 @@ export default function NoteGroups({
                             key={note.id}
                             onClick={() => onNoteSelect(note.path)}
                             className={cn(
-                              'w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors',
-                              'hover:bg-zinc-800 rounded mx-1',
-                              isSelected && 'bg-zinc-800 text-blue-400'
+                              "w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors",
+                              "hover:bg-zinc-800 rounded mx-1",
+                              isSelected && "bg-zinc-800 text-blue-400",
                             )}
-                            style={{ paddingLeft: '2.5rem' }}
+                            style={{ paddingLeft: "2.5rem" }}
                           >
                             <File className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
                             <span className="flex-1 text-left truncate text-zinc-400">
