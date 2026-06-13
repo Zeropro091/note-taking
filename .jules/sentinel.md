@@ -1,0 +1,4 @@
+## 2025-05-15 - Path Traversal Bypass using POSIX Backslashes
+**Vulnerability:** The application was susceptible to path traversal via the `noteId` parameter in various file operations because the initial path traversal check using `path.relative` relied on forward slashes, and could be bypassed by sending POSIX backslashes which resolve linearly but bypass substring ".." checks.
+**Learning:** Checking for traversal by merely ensuring `path.relative` doesn't start with `..` is insufficient if the runtime `path.resolve` handles alternate slashes in a way that escapes expected boundaries. Validating against backslash paths on Unix-like systems requires normalization beforehand.
+**Prevention:** Always normalize directory separator characters (e.g., converting all `\` to `/`) *before* applying path resolution and traversal validations. As defense-in-depth, strictly reject any inputs that contain `..` directly.
