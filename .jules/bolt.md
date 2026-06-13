@@ -1,0 +1,3 @@
+## 2024-05-24 - Memoizing Expensive Derived Graph State and Optimizing Lookups
+**Learning:** React performance can degrade significantly when expensive derived state is recalculated on every render, such as complex filtering and mapping over large datasets (e.g., `graph.nodes` and `graph.edges`). Furthermore, performing nested array lookups (like `find()`) inside a loop over a large array changes a linear time complexity O(N+E) into a polynomial one O(N*E), creating severe bottlenecks as data grows.
+**Action:** Always wrap expensive derived objects (like node and link configurations for graphs) in `useMemo`. Optimize iteration logic by precomputing lookup maps (e.g., `Map<nodeId, tags>`) before the loop, replacing O(N) array scans with O(1) map accesses.
