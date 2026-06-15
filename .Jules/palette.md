@@ -1,1 +1,5 @@
 ## 2024-05-14 - Icon Button Accessibility and Hover States\n**Learning:** Icon-only buttons often lack `aria-label`s for screen reader support, and elements hidden behind `group-hover` states become inaccessible to keyboard navigation if `focus-visible` states aren't also applied. Missing the `group` class on the parent container also breaks the hover state entirely.\n**Action:** Always pair `group-hover:opacity-100` with `focus-visible:opacity-100` for interactive elements, and verify the parent container has the `group` class. Add descriptive `aria-label`s to all icon-only buttons.
+
+## 2024-06-15 - Accordion Accessibility with Dynamic IDs
+**Learning:** When using dynamic strings like group names to generate `id` and `aria-controls` attributes for accordion components, whitespace in the strings will break the ARIA linkage, as `aria-controls` parses spaces as multiple distinct IDs.
+**Action:** Always sanitize dynamic strings before using them in `id` and `aria-*` attributes (e.g., `.replace(/\s+/g, '-')`) to ensure robust accessibility support.
