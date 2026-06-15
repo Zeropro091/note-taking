@@ -1,0 +1,7 @@
+## 2024-06-15 - Path Traversal bypass with Backslashes on POSIX and stripping `..`
+
+**Vulnerability:** Path traversal vulnerability in `validateNoteId` where Windows-style backslashes (`..\\`) and explicit traversal sequences (`..`) could bypass path.relative validation, and potentially allowing malicious path manipulation if the validation solely relied on path.relative results after stripping `..`. The test case itself highlighted that `folder/../../note` was allowed because stripping `..` made it `folder///note`, which resolved inside the directory, but still demonstrates a fundamental vulnerability where `..` wasn't explicitly rejected.
+
+**Learning:** When validating paths to prevent path traversal, relying solely on `path.resolve` and `path.relative` is insufficient, especially when handling paths that might have backslashes on POSIX systems (which treats them as literal characters, not directory separators). Furthermore, "sanitizing" by stripping `..` instead of outright rejecting it is an anti-pattern. Defense-in-depth requires explicitly rejecting the presence of `..` anywhere in the path, as well as normalizing `\` to `/` before doing any `path.resolve` logic.
+
+**Prevention:** Always normalize backslashes to forward slashes BEFORE resolving paths (preventing POSIX traversal bypasses). As a defense-in-depth measure, explicitly reject any IDs containing `..` to prevent traversal attempts outright, even if they appear to resolve safely within the base directory.
