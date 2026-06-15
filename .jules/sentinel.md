@@ -1,0 +1,4 @@
+## 2024-05-18 - Path Traversal Bypass via Backslashes
+**Vulnerability:** A path traversal check relying on `path.relative` failed to account for Windows-style backslash separators (`..\`) when run in a POSIX environment, allowing traversal attempts to bypass validation because they were treated as literal filenames instead of directory climbing sequences.
+**Learning:** Checking for traversal by simply resolving relative paths doesn't fully protect against all traversal payloads, particularly cross-platform bypasses where backslashes might evade simple `.startsWith('..')` checks if the environment interprets them differently.
+**Prevention:** Normalize all backslashes to forward slashes BEFORE validation and apply defense-in-depth by explicitly rejecting any payload containing `..` regardless of whether `path.relative` thinks it's safe.
