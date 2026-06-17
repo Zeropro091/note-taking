@@ -1,0 +1,3 @@
+## 2024-11-20 - Memoizing Expensive Derived State and Array Lookup Optimization
+**Learning:** For React performance with data-heavy components (like `react-force-graph-2d`), deriving complex node and edge arrays synchronously on every render (or frequent events like hover) without memoization creates severe performance bottlenecks. Furthermore, using `Array.find` inside an `Array.filter` when processing connections results in O(N*E) complexity.
+**Action:** Always wrap expensive derived states like node/link objects in `useMemo` and optimize array lookups by precomputing Sets or Maps before loops to reduce complexity to O(N+E).
