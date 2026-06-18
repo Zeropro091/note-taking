@@ -1,0 +1,4 @@
+## 2024-06-18 - Path Traversal Vulnerability with path.resolve
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` where Windows-style traversal paths (like `a/..\\../etc/passwd`) were allowed.
+**Learning:** `path.resolve` handles backslashes inconsistently across different operating systems. On POSIX systems, `path.resolve` does not treat backslashes as directory separators. This allowed path traversal sequences containing backslashes to bypass `path.resolve` resolution when the app runs on POSIX environments (like Docker containers or Linux servers), eventually resolving to an unsafe directory when `path.join` later normalizes or handles it.
+**Prevention:** Always normalize backslashes to forward slashes before any traversal checks, and explicitly reject any `..` sequences in IDs rather than relying solely on `path.resolve` and `path.relative` checking.
