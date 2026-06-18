@@ -1,0 +1,4 @@
+## 2026-04-18 - Path Traversal Bypass
+**Vulnerability:** A path traversal bypass was found in `validateNoteId` where Windows-style backslashes (`foo\..\..\etc\passwd`) bypassed the traversal check when run on POSIX systems because `path.resolve` did not evaluate `\` as a directory separator, resulting in `relative.startsWith('..')` evaluating to `false`. Then, `sanitizeNoteId` converted the backslashes to forward slashes, inadvertently reintroducing the traversal directly into file paths!
+**Learning:** Validation must always occur *after* all path normalization and sanitization are fully complete, or you must strictly reject input containing path escape characters (e.g. `..`) defensively. Otherwise, safe-looking input can be mutated into unsafe strings.
+**Prevention:** Always normalize separators (`\\` to `/`) and strictly reject string literals like `..` *before* utilizing `path.resolve` or `path.relative` when dealing with multi-platform input data.
