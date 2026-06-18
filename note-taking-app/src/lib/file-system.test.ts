@@ -45,9 +45,9 @@ describe('validateNoteId', () => {
     expect(validateNoteId('../../etc/passwd')).toBe(false);
   });
 
-  it('should allow path traversal attempts that resolve within the directory after stripping', () => {
-    // 'folder/../../note' becomes 'folder///note' after stripping '..'
-    expect(validateNoteId('folder/../../note')).toBe(true);
+  it('should not allow path traversal attempts that resolve within the directory after stripping', () => {
+    // We strictly reject any IDs with '..' to prevent path traversal bypasses
+    expect(validateNoteId('folder/../../note')).toBe(false);
   });
 
   it('should handle Windows-style path traversal attempts', () => {
