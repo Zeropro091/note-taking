@@ -1,0 +1,4 @@
+## 2024-06-19 - [CRITICAL] Prevent path traversal bypasses in file IDs
+**Vulnerability:** Path traversal bypass possible in `validateNoteId` by using backslashes (`\`) on systems where `path.resolve` or `path.relative` handles them differently, or through complex relative paths like `folder/../../note`.
+**Learning:** Checking for traversal by relying solely on `path.relative` starting with `..` can sometimes be bypassed or mislead. Also, relying on `sanitizeNoteId` to sanitize inputs after `validateNoteId` fails validation can still leave the system vulnerable if validation was inadequate.
+**Prevention:** Normalize backslashes (`\`) to forward slashes (`/`) *before* resolving paths, and explicitly reject any IDs containing `..` for defense-in-depth against traversal attempts, rather than just checking if the final resolved path escapes the base directory.
