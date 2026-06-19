@@ -1,7 +1,7 @@
 'use client';
 
 // Graph visualization component with enhanced interactivity
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import type { GraphData as FGData } from 'react-force-graph-2d';
 import * as d3 from 'd3-force';
@@ -38,40 +38,46 @@ export default function GraphView({
   }, [notes]);
 
   // Save current graph data before isolation
-  const currentData: FGData = {
-    nodes: graph.nodes
-      .filter((node) => {
-        if (!filterTag) return true;
-        return node.tags.includes(filterTag);
-      })
-      .map((node) => ({
-        id: node.id,
-        name: node.label,
-        val: node.tags.length + 1,
-        color: node.id === selectedNodeId ? '#3b82f6' : getColorForTags(node.tags),
-      })),
-    links: graph.edges
-      .filter((edge) => {
-        if (!filterTag) return true;
-        const sourceNode = graph.nodes.find((n) => n.id === edge.source);
-        const targetNode = graph.nodes.find((n) => n.id === edge.target);
-        return (
-          sourceNode?.tags.includes(filterTag) || targetNode?.tags.includes(filterTag)
-        );
-      })
-      .map((edge) => ({
-        source: edge.source,
-        target: edge.target,
-      })),
-  };
+  const currentData: FGData = useMemo(() => {
+    // Precompute filtered node IDs for O(1) edge lookup instead of O(N) per edge
+    const filteredNodeIds = new Set(
+      filterTag
+        ? graph.nodes.filter((n) => n.tags.includes(filterTag)).map((n) => n.id)
+        : null
+    );
+
+    return {
+      nodes: graph.nodes
+        .filter((node) => {
+          if (!filterTag) return true;
+          return filteredNodeIds.has(node.id);
+        })
+        .map((node) => ({
+          id: node.id,
+          name: node.label,
+          val: node.tags.length + 1,
+          color: node.id === selectedNodeId ? '#3b82f6' : getColorForTags(node.tags),
+        })),
+      links: graph.edges
+        .filter((edge) => {
+          if (!filterTag) return true;
+          // Optimizes from O(N*E) to O(N+E) using the precomputed Set
+          return filteredNodeIds.has(edge.source) || filteredNodeIds.has(edge.target);
+        })
+        .map((edge) => ({
+          source: edge.source,
+          target: edge.target,
+        })),
+    };
+  }, [graph, filterTag, selectedNodeId]);
 
   // Use isolated data if available, otherwise use filtered currentData
   const displayData = isolatedData || currentData;
 
   // Get all unique tags
-  const allTags = Array.from(
-    new Set(graph.nodes.flatMap((n) => n.tags))
-  ).sort();
+  const allTags = useMemo(() => {
+    return Array.from(new Set(graph.nodes.flatMap((n) => n.tags))).sort();
+  }, [graph.nodes]);
 
   // Zoom controls
   const handleZoomIn = () => {
