@@ -1,0 +1,5 @@
+## 2024-06-20 - Memoizing force-graph derived state and optimizing graph edge lookups
+
+**Learning:** When using data-heavy components like `react-force-graph-2d`, deriving complex state (like mapping nodes and filtering edges) directly in the component body can cause significant performance bottlenecks due to recalculations on every render. Furthermore, doing array lookups (`.find`) on nodes while iterating through edges transforms an edge-filtering operation into an O(N*E) operation, which scales poorly as the graph grows.
+
+**Action:** Always wrap expensive derived graph structures (like nodes and links objects for force-graph) in `useMemo` to prevent exhaustive recalculations during frequent events like hover or layout changes. When performing lookups during filtering of associative data (e.g. graph edges to nodes), precompute a `Set` or `Map` of valid IDs before the loop. This reduces O(N*E) array searches to O(N+E) time complexity with O(1) Set lookups.
