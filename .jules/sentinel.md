@@ -1,0 +1,4 @@
+## 2024-06-21 - Fix Path Traversal Vulnerability
+**Vulnerability:** A path traversal vulnerability existed in the `validateNoteId` function. It previously allowed `..` sequences if the final resolved path happened to fall within the base directory, and did not normalize Windows-style backslashes (`\`) before checking POSIX paths with `path.relative`.
+**Learning:** Checking for traversal by relying on `path.relative` after `path.resolve` is insufficient if cross-platform paths (like backslashes on POSIX systems) are not normalized first. Furthermore, accepting `..` even if it ostensibly resolves inside the safe directory provides unnecessary attack surface.
+**Prevention:** Always normalize slashes before resolving paths. As a defense-in-depth measure, immediately reject any user-supplied path that contains `..` rather than relying solely on `path.resolve` and `path.relative` to neutralize the traversal.
