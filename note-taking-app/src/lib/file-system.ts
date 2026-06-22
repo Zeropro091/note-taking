@@ -17,8 +17,16 @@ export function validateNoteId(id: string): boolean {
     return false;
   }
 
+  // Normalize backslashes to forward slashes for cross-platform checking
+  const normalizedId = id.replace(/\\/g, '/');
+
+  // Explicitly reject any IDs containing traversal segments
+  if (normalizedId.includes('..')) {
+    return false;
+  }
+
   // Check for invalid characters (Windows/Unix filename restrictions)
-  if (/[<>:"|?*\x00-\x1f]/.test(id)) {
+  if (/[<>:"|?*\x00-\x1f]/.test(normalizedId)) {
     return false;
   }
 
