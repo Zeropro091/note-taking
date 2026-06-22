@@ -1,0 +1,4 @@
+## 2025-06-22 - [Path Traversal bypass due to relative resolution]
+**Vulnerability:** The application's `validateNoteId` function was vulnerable to a path traversal bypass because it solely relied on `path.resolve` and `path.relative` to ensure files remained within `NOTES_DIR`. If an attacker supplied `folder/../../etc/passwd`, it could bypass the `path.relative` check if it wasn't strictly rejected early.
+**Learning:** `path.resolve` and `path.relative` are not sufficient alone for preventing path traversal, especially when input validation relies on simply checking if the resolved path starts with `..`. Normalizing the string and strictly rejecting `..` traversal sequences BEFORE resolution is critical for defense-in-depth.
+**Prevention:** Always normalize slashes (converting backslashes to forward slashes) and strictly reject any input containing `..` to prevent traversal sequences, rather than just relying on post-resolution boundary checks.
