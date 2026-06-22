@@ -1,0 +1,3 @@
+## 2024-06-22 - Optimize Graph Data Computation with Sets and useMemo
+**Learning:** During array filtering over a list of items to match relational entities (such as checking if graph edges are attached to filtered nodes), using `.find` inside the edge array `.filter` over the nodes array leads to severe `O(N*E)` performance degradation, especially during render without `useMemo`.
+**Action:** When filtering related items (e.g., node associations for graph links), always pre-compute a `Set` of valid entity IDs (e.g., node IDs) inside a `useMemo` block first. This reduces the time complexity from `O(N*E)` to `O(N+E)` and prevents the expensive calculation from running on every single render.
