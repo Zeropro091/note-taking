@@ -164,9 +164,11 @@ export default function NoteGroups({
                 {/* Group Header */}
                 <button
                   onClick={() => toggleGroup(group.name)}
+                  aria-expanded={isExpanded}
+                  aria-controls={`group-content-${group.name.replace(/\s+/g, '-')}`}
                   className={cn(
                     'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors',
-                    'hover:bg-zinc-800 rounded mx-1'
+                    'hover:bg-zinc-800 rounded mx-1 focus-visible:ring-2 focus-visible:outline-none'
                   )}
                   style={{ borderLeft: `3px solid ${group.color}` }}
                 >
@@ -188,6 +190,7 @@ export default function NoteGroups({
                 <AnimatePresence initial={false}>
                   {isExpanded && (
                     <motion.div
+                      id={`group-content-${group.name.replace(/\s+/g, '-')}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
