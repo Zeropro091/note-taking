@@ -1,0 +1,3 @@
+## 2024-06-25 - React Force Graph Performance
+**Learning:** Wrapping expensive derived state objects (like graph nodes and edges) that map over large arrays must be put into a `useMemo` hook. Without it, React recalculates these arrays on every render. Because ForceGraph takes `graphData`, every recalculation triggers new object references for nodes and links. This causes a massive performance hit on highly interactive components since states like `hoveredNode` change on a whim.
+**Action:** For React components with data-heavy dependencies (especially graph rendering or data visualization tools), always wrap derived state mapping arrays in `useMemo` and carefully configure dependencies.
