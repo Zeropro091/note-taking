@@ -1,0 +1,4 @@
+## 2024-06-25 - Path Traversal Bypass via POSIX Path Resolution on Windows
+**Vulnerability:** Path traversal attacks (`..\..`) could bypass the `path.relative` directory containment check when the application was run on Windows, and `..` sequences within inner directory paths were permitted and resolved.
+**Learning:** `path.resolve` handles backslashes on Windows differently than on POSIX systems. An attacker using backslashes could exploit `path.relative` on certain server configs. Furthermore, `..` should be explicitly denied as a defense in depth rather than relying on directory resolution and comparison.
+**Prevention:** Normalize backslashes to forward slashes before any path validation/resolution. Add explicit `.includes('..')` rejection checks to all file path inputs as an initial defense-in-depth layer.
