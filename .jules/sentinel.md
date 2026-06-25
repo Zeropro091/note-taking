@@ -1,0 +1,4 @@
+## 2026-06-25 - Prevent POSIX Traversal Bypasses in file paths
+**Vulnerability:** Path traversal verification could be bypassed by using backslashes (`\`) on platforms where they are not natively treated as separators by `path.resolve` or `path.relative`, allowing traversal characters (`..`) to reach the file system untouched.
+**Learning:** Checking for traversal purely by path resolution outputs can be insufficient if the input leverages cross-platform path differences (like backslashes vs forward slashes). When evaluating paths, normalizing path separators explicitly *before* traversal checks guarantees proper handling regardless of OS nuances.
+**Prevention:** Always normalize backward slashes (`\`) to forward slashes (`/`) and explicitly reject strings containing traversal characters (`..`) *prior* to using `path.resolve` or `path.relative` on user inputs, providing a robust defense-in-depth approach against path traversal attacks.
