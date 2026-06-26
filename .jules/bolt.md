@@ -1,0 +1,3 @@
+## 2024-06-26 - Avoid O(N*E) derived state loops in React Force Graph components
+**Learning:** Found a performance bottleneck in `GraphView.tsx` where derived states like filtered nodes/edges and tags were recalculated on every render (including hover events). Inside the edge filter, `graph.nodes.find(...)` was called for every edge, leading to O(N*E) time complexity during frequent re-renders.
+**Action:** Always wrap expensive derived states related to node/link processing in `useMemo` to prevent unneeded recalculations, and precompute lookup structures (like `Set`) before `.filter()` loops to keep time complexity closer to O(N+E).
