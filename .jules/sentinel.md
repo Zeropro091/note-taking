@@ -1,0 +1,5 @@
+
+## 2024-06-28 - [CRITICAL] Path Traversal Bypass via Backslashes on POSIX
+**Vulnerability:** A path traversal vulnerability was discovered in `validateNoteId` where Windows-style backslash paths (e.g., `folder\..\..\etc\passwd`) were correctly resolved by `path.resolve` but treated as a single filename by `path.relative` on POSIX systems. When subsequently sanitized via `id.replace(/\\/g, '/')`, this resulted in a valid traversal path that bypassed directory boundaries.
+**Learning:** Checking for traversal by relying on `path.relative` *before* normalizing path separators allows attackers to bypass POSIX `path.relative` checks by using backslashes, which are later converted to active directory traversal sequences during string sanitization.
+**Prevention:** Always normalize all path separators (e.g., backslashes to forward slashes) BEFORE running path validation/resolution checks like `path.relative`. Additionally, employ defense-in-depth by explicitly rejecting IDs containing explicit traversal sequences (e.g., `..`).
