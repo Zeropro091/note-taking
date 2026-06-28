@@ -5,7 +5,7 @@ export interface NoteFrontmatter {
   tags?: string[];
   created?: string;
   updated?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Note {

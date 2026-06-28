@@ -1,0 +1,4 @@
+## 2024-10-24 - [Path Traversal bypass using backslashes]
+**Vulnerability:** A path traversal bypass was discovered in `validateNoteId`. While `path.relative` correctly handled typical traversal sequences (`..`), passing paths with backslashes on a POSIX environment allowed traversing the file system outside of `NOTES_DIR` (e.g. `foo\..\..\etc\passwd`).
+**Learning:** `path.resolve` and `path.relative` in POSIX environments do not normalize backslashes as path separators. Attackers can leverage this to circumvent checks based solely on `path.relative` output if backslashes are subsequently interpreted differently or processed by tools expecting cross-platform separators.
+**Prevention:** Normalize backslashes (`\`) to forward slashes (`/`) *before* applying path resolution or validation on POSIX systems when handling user-provided file paths. Also use explicit checks (e.g. `.includes('..')`) as a defense-in-depth measure.
