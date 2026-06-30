@@ -45,13 +45,19 @@ describe('validateNoteId', () => {
     expect(validateNoteId('../../etc/passwd')).toBe(false);
   });
 
-  it('should allow path traversal attempts that resolve within the directory after stripping', () => {
-    // 'folder/../../note' becomes 'folder///note' after stripping '..'
-    expect(validateNoteId('folder/../../note')).toBe(true);
+  it('should explicitly reject any path traversal attempts even if they would resolve within the directory', () => {
+    // Any sequence with '..' as a path segment should be rejected as a defense-in-depth measure
+    expect(validateNoteId('folder/../../note')).toBe(false);
   });
 
-  it('should handle Windows-style path traversal attempts', () => {
+  it('should allow valid note IDs that happen to contain consecutive dots but are not traversal sequences', () => {
+    expect(validateNoteId('my..note')).toBe(true);
+    expect(validateNoteId('folder/my..note')).toBe(true);
+  });
+
+  it('should handle Windows-style path traversal attempts and reject them', () => {
     expect(validateNoteId('..\\note')).toBe(false);
     expect(validateNoteId('..\\..\\Windows\\System32')).toBe(false);
+    expect(validateNoteId('folder\\..\\..\\note')).toBe(false);
   });
 });
