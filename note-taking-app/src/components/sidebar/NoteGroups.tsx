@@ -169,6 +169,8 @@ export default function NoteGroups({
                     'hover:bg-zinc-800 rounded mx-1'
                   )}
                   style={{ borderLeft: `3px solid ${group.color}` }}
+                  aria-expanded={isExpanded}
+                  aria-controls={`group-${group.name.replace(/\s+/g, '-')}`}
                 >
                   {isExpanded ? (
                     <ChevronDown className="w-4 h-4 text-zinc-500 flex-shrink-0" />
@@ -188,6 +190,7 @@ export default function NoteGroups({
                 <AnimatePresence initial={false}>
                   {isExpanded && (
                     <motion.div
+                      id={`group-${group.name.replace(/\s+/g, '-')}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
