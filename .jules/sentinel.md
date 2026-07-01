@@ -1,0 +1,4 @@
+## 2025-03-01 - Windows-style Path Traversal Bypass
+**Vulnerability:** Path traversal verification logic in `validateNoteId` was bypassing `..` checks on POSIX systems when the input contained Windows-style backslashes (e.g. `foo/..\..\etc\passwd`). Path resolution correctly preserved backslashes, making the path seemingly valid and inside the base directory, but a later `sanitizeNoteId` routine converted all `\` to `/` allowing directory traversal upon read.
+**Learning:** Checking for traversal simply with `path.resolve` is unreliable on POSIX OS environments if paths contain mixed separators that get normalized *after* validation. `path.resolve` does not normalize `\` on POSIX.
+**Prevention:** Normalize all incoming paths (`.replace(/\\/g, '/')`) *before* resolving or validating them against base directories, and combine this with explicit defense-in-depth regexes to catch malicious sequences.
