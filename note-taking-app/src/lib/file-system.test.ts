@@ -45,13 +45,16 @@ describe('validateNoteId', () => {
     expect(validateNoteId('../../etc/passwd')).toBe(false);
   });
 
-  it('should allow path traversal attempts that resolve within the directory after stripping', () => {
-    // 'folder/../../note' becomes 'folder///note' after stripping '..'
-    expect(validateNoteId('folder/../../note')).toBe(true);
+  it('should reject path traversal attempts even if they resolve within the directory', () => {
+    // 'folder/../../note' contains '..' which is explicitly rejected
+    expect(validateNoteId('folder/../../note')).toBe(false);
   });
 
   it('should handle Windows-style path traversal attempts', () => {
     expect(validateNoteId('..\\note')).toBe(false);
     expect(validateNoteId('..\\..\\Windows\\System32')).toBe(false);
+
+    // Explicitly check the bypass case that mixes forward/backward slashes
+    expect(validateNoteId('some_folder/..\\..\\..\\etc\\passwd')).toBe(false);
   });
 });
