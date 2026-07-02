@@ -158,15 +158,19 @@ export default function NoteGroups({
         ) : (
           groupedNotes.map((group) => {
             const isExpanded = expandedGroups.has(group.name);
+            const contentId = `group-content-${group.name.replace(/\s+/g, '-')}`;
 
             return (
               <div key={group.name} className="mb-1">
                 {/* Group Header */}
                 <button
                   onClick={() => toggleGroup(group.name)}
+                  aria-expanded={isExpanded}
+                  aria-controls={contentId}
                   className={cn(
-                    'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors',
-                    'hover:bg-zinc-800 rounded mx-1'
+                    'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors outline-none',
+                    'hover:bg-zinc-800 rounded mx-1',
+                    'focus-visible:ring-2 focus-visible:ring-blue-500'
                   )}
                   style={{ borderLeft: `3px solid ${group.color}` }}
                 >
@@ -188,6 +192,7 @@ export default function NoteGroups({
                 <AnimatePresence initial={false}>
                   {isExpanded && (
                     <motion.div
+                      id={contentId}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
