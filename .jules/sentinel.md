@@ -1,0 +1,4 @@
+## 2024-05-18 - Path Traversal Bypass via Backslashes
+**Vulnerability:** Path traversal bypass in `validateNoteId` using Windows-style backslashes (e.g., `..\..\etc\passwd`).
+**Learning:** Node.js's POSIX path resolution (`path.resolve`) treats backslashes as regular characters, not path separators, on non-Windows systems (like Linux). If an attacker sends Windows-style backslashes in a path, `path.resolve` won't resolve the `..` segments, bypassing simple `startsWith('..')` checks. If those backslashes are later normalized or used in a way that respects them, a path traversal occurs.
+**Prevention:** Always normalize path separators (e.g., convert `\` to `/`) *before* applying path resolution or validation logic. Additionally, explicitly reject `..` traversal segments bounded by separators (`/(^|\/)\.\.(?=\/|$)/`) to prevent bypasses, rather than relying solely on `path.resolve` and `path.relative` which can be circumvented.
