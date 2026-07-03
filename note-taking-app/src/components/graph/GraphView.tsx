@@ -1,14 +1,29 @@
-'use client';
+"use client";
 
 // Graph visualization component with enhanced interactivity
-import { useEffect, useRef, useState, useCallback } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
-import type { GraphData as FGData } from 'react-force-graph-2d';
-import * as d3 from 'd3-force';
-import { motion, AnimatePresence } from 'framer-motion';
-import type { GraphData, GraphNode, Note } from '@/types/notes';
-import { Maximize2, Filter, ZoomIn, ZoomOut, RotateCcw, Play, Pause, Undo, Sparkles, Download, ExternalLink, X, FileText, Tag } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import ForceGraph2D from "react-force-graph-2d";
+import type { GraphData as FGData } from "react-force-graph-2d";
+import * as d3 from "d3-force";
+import { motion, AnimatePresence } from "framer-motion";
+import type { GraphData, GraphNode, Note } from "@/types/notes";
+import {
+  Maximize2,
+  Filter,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Play,
+  Pause,
+  Undo,
+  Sparkles,
+  Download,
+  ExternalLink,
+  X,
+  FileText,
+  Tag,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface GraphViewProps {
   graph: GraphData;
@@ -33,9 +48,12 @@ export default function GraphView({
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
   // Get note details for a node ID
-  const getNoteDetails = useCallback((nodeId: string): Note | undefined => {
-    return notes.find((n) => n.id === nodeId);
-  }, [notes]);
+  const getNoteDetails = useCallback(
+    (nodeId: string): Note | undefined => {
+      return notes.find((n) => n.id === nodeId);
+    },
+    [notes],
+  );
 
   // Save current graph data before isolation
   const currentData: FGData = {
@@ -48,7 +66,8 @@ export default function GraphView({
         id: node.id,
         name: node.label,
         val: node.tags.length + 1,
-        color: node.id === selectedNodeId ? '#3b82f6' : getColorForTags(node.tags),
+        color:
+          node.id === selectedNodeId ? "#3b82f6" : getColorForTags(node.tags),
       })),
     links: graph.edges
       .filter((edge) => {
@@ -56,7 +75,8 @@ export default function GraphView({
         const sourceNode = graph.nodes.find((n) => n.id === edge.source);
         const targetNode = graph.nodes.find((n) => n.id === edge.target);
         return (
-          sourceNode?.tags.includes(filterTag) || targetNode?.tags.includes(filterTag)
+          sourceNode?.tags.includes(filterTag) ||
+          targetNode?.tags.includes(filterTag)
         );
       })
       .map((edge) => ({
@@ -70,7 +90,7 @@ export default function GraphView({
 
   // Get all unique tags
   const allTags = Array.from(
-    new Set(graph.nodes.flatMap((n) => n.tags))
+    new Set(graph.nodes.flatMap((n) => n.tags)),
   ).sort();
 
   // Zoom controls
@@ -110,36 +130,42 @@ export default function GraphView({
   }, []);
 
   // Click to isolate node (show only connected nodes)
-  const isolateNode = useCallback((nodeId: string) => {
-    const connectedNodeIds = new Set([nodeId]);
-    const connectedLinks: typeof currentData.links = [];
+  const isolateNode = useCallback(
+    (nodeId: string) => {
+      const connectedNodeIds = new Set([nodeId]);
+      const connectedLinks: typeof currentData.links = [];
 
-    // Find all directly connected nodes
-    graph.edges.forEach((edge) => {
-      if (edge.source === nodeId) {
-        connectedNodeIds.add(edge.target);
-        connectedLinks.push(edge);
-      } else if (edge.target === nodeId) {
-        connectedNodeIds.add(edge.source);
-        connectedLinks.push(edge);
-      }
-    });
+      // Find all directly connected nodes
+      graph.edges.forEach((edge) => {
+        if (edge.source === nodeId) {
+          connectedNodeIds.add(edge.target);
+          connectedLinks.push(edge);
+        } else if (edge.target === nodeId) {
+          connectedNodeIds.add(edge.source);
+          connectedLinks.push(edge);
+        }
+      });
 
-    // Filter to show only connected nodes
-    const filteredNodes = currentData.nodes.filter((n: any) => connectedNodeIds.has(n.id));
-    const filteredLinks = currentData.links.filter((l: any) =>
-      connectedNodeIds.has(l.source) && connectedNodeIds.has(l.target)
-    );
+      // Filter to show only connected nodes
+      const filteredNodes = currentData.nodes.filter((n: any) =>
+        connectedNodeIds.has(n.id),
+      );
+      const filteredLinks = currentData.links.filter(
+        (l: any) =>
+          connectedNodeIds.has(l.source) && connectedNodeIds.has(l.target),
+      );
 
-    setIsolatedData({
-      nodes: filteredNodes.map((n: any) => ({
-        ...n,
-        val: (n.tags?.length + 1) * 1.5, // Make connected nodes larger
-      })),
-      links: filteredLinks,
-    });
-    setIsIsolated(true);
-  }, [graph, currentData]);
+      setIsolatedData({
+        nodes: filteredNodes.map((n: any) => ({
+          ...n,
+          val: (n.tags?.length + 1) * 1.5, // Make connected nodes larger
+        })),
+        links: filteredLinks,
+      });
+      setIsIsolated(true);
+    },
+    [graph, currentData],
+  );
 
   // Highlight connected nodes on hover
   const handleNodeHover = (node: any) => {
@@ -154,6 +180,18 @@ export default function GraphView({
       resetGraph();
     }
   };
+
+  // Pre-compute connected nodes when a node is hovered for O(1) lookup during render
+  const hoveredConnectedNodes = useMemo(() => {
+    if (!hoveredNode) return new Set<string>();
+
+    const connected = new Set<string>();
+    graph.edges.forEach((edge) => {
+      if (edge.source === hoveredNode) connected.add(edge.target);
+      if (edge.target === hoveredNode) connected.add(edge.source);
+    });
+    return connected;
+  }, [hoveredNode, graph.edges]);
 
   // Handle node click - show info panel
   const handleNodeClick = (node: any) => {
@@ -201,13 +239,24 @@ export default function GraphView({
       const linkDistance = 50 + Math.log10(nodeCount + 10) * 40;
 
       try {
-        fgRef.current.d3Force('charge', (d3 as any).forceManyBody().strength(chargeStrength));
-        fgRef.current.d3Force('link', (d3 as any).forceLink().distance(linkDistance));
-        fgRef.current.d3Force('collide', (d3 as any).forceCollide().radius(15 + Math.log10(nodeCount + 10) * 3));
+        fgRef.current.d3Force(
+          "charge",
+          (d3 as any).forceManyBody().strength(chargeStrength),
+        );
+        fgRef.current.d3Force(
+          "link",
+          (d3 as any).forceLink().distance(linkDistance),
+        );
+        fgRef.current.d3Force(
+          "collide",
+          (d3 as any)
+            .forceCollide()
+            .radius(15 + Math.log10(nodeCount + 10) * 3),
+        );
         fgRef.current.d3ReheatSimulation();
       } catch (e) {
         // Force configuration might fail, ignore
-        console.debug('Force configuration:', e);
+        console.debug("Force configuration:", e);
       }
     }, 100);
 
@@ -219,19 +268,21 @@ export default function GraphView({
     if (fgRef.current) {
       const canvas = (fgRef.current as any).canvas();
       if (canvas) {
-        const link = document.createElement('a');
-        link.download = 'knowledge-graph.png';
-        link.href = canvas.toDataURL('image/png');
+        const link = document.createElement("a");
+        link.download = "knowledge-graph.png";
+        link.href = canvas.toDataURL("image/png");
         link.click();
       }
     }
   };
 
   return (
-    <div className={`
+    <div
+      className={`
       relative bg-zinc-900
-      ${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'}
-    `}>
+      ${isFullscreen ? "fixed inset-0 z-50" : "h-full"}
+    `}
+    >
       {/* Controls Panel */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
         <Button
@@ -264,7 +315,11 @@ export default function GraphView({
           onClick={togglePause}
           title={isPaused ? "Resume physics" : "Pause physics"}
         >
-          {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+          {isPaused ? (
+            <Play className="w-4 h-4" />
+          ) : (
+            <Pause className="w-4 h-4" />
+          )}
         </Button>
         <Button
           size="sm"
@@ -272,7 +327,11 @@ export default function GraphView({
           onClick={isIsolated ? resetGraph : () => setIsIsolated(true)}
           title={isIsolated ? "Show all notes" : "Click a node to isolate"}
         >
-          {isIsolated ? <Undo className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+          {isIsolated ? (
+            <Undo className="w-4 h-4" />
+          ) : (
+            <Sparkles className="w-4 h-4" />
+          )}
         </Button>
         <Button
           size="sm"
@@ -307,9 +366,10 @@ export default function GraphView({
               }}
               className={`
                 text-xs px-2 py-1 rounded transition-colors
-                ${filterTag === null
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                ${
+                  filterTag === null
+                    ? "bg-blue-600 text-white"
+                    : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
                 }
               `}
             >
@@ -324,9 +384,10 @@ export default function GraphView({
                 }}
                 className={`
                   text-xs px-2 py-1 rounded transition-colors
-                  ${filterTag === tag
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                  ${
+                    filterTag === tag
+                      ? "bg-blue-600 text-white"
+                      : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
                   }
                 `}
               >
@@ -350,37 +411,43 @@ export default function GraphView({
 
       {/* Graph */}
       <ForceGraph2D
-        key={isIsolated ? 'isolated' : 'full'}
+        key={isIsolated ? "isolated" : "full"}
         ref={fgRef}
         graphData={displayData}
         nodeLabel={(node: any) => `
           <div class="bg-zinc-800 px-2 py-1 rounded text-sm pointer-events-none">
             <strong>${node.name}</strong><br/>
-            <span class="text-zinc-400">${node.tags?.map((t: string) => '#' + t).join(', ') || 'No tags'}</span>
+            <span class="text-zinc-400">${node.tags?.map((t: string) => "#" + t).join(", ") || "No tags"}</span>
           </div>
         `}
         nodeColor={(node: any) => {
           // Highlight connected nodes when hovering
           if (hoveredNode) {
             if (node.id === hoveredNode) {
-              return '#ffffff'; // Bright white for hovered node
+              return "#ffffff"; // Bright white for hovered node
             }
-            if (isConnected(node.id, hoveredNode, graph.edges)) {
+            if (hoveredConnectedNodes.has(node.id)) {
               return node.color;
             }
-            return '#333333'; // Dim unconnected nodes
+            return "#333333"; // Dim unconnected nodes
           }
           return node.color;
         }}
         nodeRelSize={3}
         linkColor={(link: any) => {
-          if (hoveredNode && (link.source?.id === hoveredNode || link.target?.id === hoveredNode)) {
-            return '#666666';
+          if (
+            hoveredNode &&
+            (link.source?.id === hoveredNode || link.target?.id === hoveredNode)
+          ) {
+            return "#666666";
           }
-          return '#444444';
+          return "#444444";
         }}
         linkWidth={(link: any) => {
-          if (hoveredNode && (link.source?.id === hoveredNode || link.target?.id === hoveredNode)) {
+          if (
+            hoveredNode &&
+            (link.source?.id === hoveredNode || link.target?.id === hoveredNode)
+          ) {
             return 2;
           }
           return 1;
@@ -400,14 +467,10 @@ export default function GraphView({
       <div className="absolute bottom-4 left-4 z-10 bg-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-400">
         <div className="flex items-center gap-2">
           <div>{displayData.nodes.length} notes</div>
-          {isIsolated && (
-            <span className="text-zinc-500">(isolated)</span>
-          )}
+          {isIsolated && <span className="text-zinc-500">(isolated)</span>}
         </div>
         <div>{displayData.links.length} connections</div>
-        {isPaused && (
-          <div className="text-zinc-500">⏸️ Paused</div>
-        )}
+        {isPaused && <div className="text-zinc-500">⏸️ Paused</div>}
         {hoveredNode && !isIsolated && (
           <div className="text-blue-400">Hovering: {hoveredNode}</div>
         )}
@@ -420,14 +483,16 @@ export default function GraphView({
             initial={{ opacity: 0, x: 20, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: 20, y: 20, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className="absolute bottom-4 right-4 z-20 w-80 bg-zinc-800 rounded-lg shadow-xl border border-zinc-700 overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-zinc-900 border-b border-zinc-700">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-semibold text-zinc-200">Note Details</span>
+                <span className="text-sm font-semibold text-zinc-200">
+                  Note Details
+                </span>
               </div>
               <button
                 onClick={closeInfoPanel}
@@ -470,12 +535,22 @@ export default function GraphView({
               )}
 
               {/* Connections */}
-              {graph.edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id).length > 0 && (
+              {graph.edges.filter(
+                (e) =>
+                  e.source === selectedNode.id || e.target === selectedNode.id,
+              ).length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center gap-1 text-xs text-zinc-400 mb-2">
                     <Sparkles className="w-3 h-3" />
                     <span>
-                      {graph.edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id).length} connections
+                      {
+                        graph.edges.filter(
+                          (e) =>
+                            e.source === selectedNode.id ||
+                            e.target === selectedNode.id,
+                        ).length
+                      }{" "}
+                      connections
                     </span>
                   </div>
                 </div>
@@ -490,7 +565,7 @@ export default function GraphView({
                     <div className="mb-4 p-3 bg-zinc-900 rounded-lg">
                       <p className="text-xs text-zinc-400 line-clamp-4">
                         {preview}
-                        {note.content.length > 150 && '...'}
+                        {note.content.length > 150 && "..."}
                       </p>
                     </div>
                   );
@@ -515,63 +590,52 @@ export default function GraphView({
   );
 }
 
-// Helper function to check if two nodes are connected
-function isConnected(
-  nodeId1: string,
-  nodeId2: string,
-  edges: Array<{ source: string; target: string }>
-): boolean {
-  return edges.some(
-    (e) =>
-      (e.source === nodeId1 && e.target === nodeId2) ||
-      (e.source === nodeId2 && e.target === nodeId1)
-  );
-}
-
 // Generate color based on tags
 function getColorForTags(tags: string[] | undefined | null): string {
   // Ensure tags is an array and has at least one valid string tag
   if (!tags || !Array.isArray(tags) || tags.length === 0) {
-    return '#666666';
+    return "#666666";
   }
 
   // Filter out non-string tags
-  const validTags = tags.filter((tag): tag is string => typeof tag === 'string');
+  const validTags = tags.filter(
+    (tag): tag is string => typeof tag === "string",
+  );
 
   if (validTags.length === 0) {
-    return '#666666';
+    return "#666666";
   }
 
   const colors: Record<string, string> = {
     // Predefined colors for common tags
-    javascript: '#f7df1e',
-    typescript: '#3178c6',
-    react: '#61dafb',
-    nextjs: '#000000',
-    python: '#3776ab',
-    rust: '#000000',
-    go: '#00add8',
-    ai: '#10b981',
-    business: '#f59e0b',
-    saas: '#8b5cf6',
-    documentation: '#06b6d4',
-    security: '#ef4444',
-    roadmap: '#ec4899',
-    tech: '#3b82f6',
-    app: '#8b5cf6',
-    research: '#14b8a6',
-    sales: '#22c55e',
-    closing: '#eab308',
-    objections: '#f97316',
-    'follow-up': '#0ea5e9',
-    'lead-gen': '#a855f7',
-    negotiation: '#6366f1',
-    growth: '#84cc16',
-    'client-success': '#10b981',
-    pricing: '#f59e0b',
-    psychology: '#ec4899',
+    javascript: "#f7df1e",
+    typescript: "#3178c6",
+    react: "#61dafb",
+    nextjs: "#000000",
+    python: "#3776ab",
+    rust: "#000000",
+    go: "#00add8",
+    ai: "#10b981",
+    business: "#f59e0b",
+    saas: "#8b5cf6",
+    documentation: "#06b6d4",
+    security: "#ef4444",
+    roadmap: "#ec4899",
+    tech: "#3b82f6",
+    app: "#8b5cf6",
+    research: "#14b8a6",
+    sales: "#22c55e",
+    closing: "#eab308",
+    objections: "#f97316",
+    "follow-up": "#0ea5e9",
+    "lead-gen": "#a855f7",
+    negotiation: "#6366f1",
+    growth: "#84cc16",
+    "client-success": "#10b981",
+    pricing: "#f59e0b",
+    psychology: "#ec4899",
     // Default colors
-    default: '#6366f1',
+    default: "#6366f1",
   };
 
   // Return color for first matching tag, or default
@@ -582,7 +646,9 @@ function getColorForTags(tags: string[] | undefined | null): string {
 
   // Generate consistent color from tag string
   const firstTag = validTags[0];
-  const hash = firstTag.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hash = firstTag
+    .split("")
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const hue = hash % 360;
   return `hsl(${hue}, 70%, 50%)`;
 }
