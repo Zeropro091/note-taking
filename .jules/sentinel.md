@@ -1,0 +1,5 @@
+
+## 2024-07-04 - Fix Path Traversal Bypass in validateNoteId
+**Vulnerability:** A path traversal vulnerability bypass was present in `validateNoteId`. While it checked whether the resolved path was within `NOTES_DIR`, an attacker could supply Windows-style backward slashes (e.g. `folder\..\..\..\etc\passwd`), which `path.resolve` (on non-Windows environments) might treat as part of the filename instead of a directory separator, bypassing traversal checks. Furthermore, internal path traversals (`folder/../../note`) could resolve within the root but still be maliciously crafted to bypass stripping filters, leading to access to unintended paths outside `NOTES_DIR`.
+**Learning:** Normalizing backslashes to forward slashes before applying logic is required to prevent POSIX traversal bypasses when path validation relies on `path.resolve` and `path.relative`.
+**Prevention:** Explicitly reject paths with the `..` string using regex bounded by path separators (`/(^|\/)\.\.(?=\/|$)/`) to prevent traversals without falsely rejecting legitimate filenames containing consecutive dots (e.g., `my..note`). Ensure these checks are executed BEFORE `path.resolve` is called.
