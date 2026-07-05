@@ -158,15 +158,18 @@ export default function NoteGroups({
         ) : (
           groupedNotes.map((group) => {
             const isExpanded = expandedGroups.has(group.name);
+            const groupId = `group-${group.name.replace(/\s+/g, '-')}`;
 
             return (
               <div key={group.name} className="mb-1">
                 {/* Group Header */}
                 <button
                   onClick={() => toggleGroup(group.name)}
+                  aria-expanded={isExpanded}
+                  aria-controls={groupId}
                   className={cn(
                     'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors',
-                    'hover:bg-zinc-800 rounded mx-1'
+                    'hover:bg-zinc-800 rounded mx-1 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-blue-400'
                   )}
                   style={{ borderLeft: `3px solid ${group.color}` }}
                 >
@@ -188,6 +191,7 @@ export default function NoteGroups({
                 <AnimatePresence initial={false}>
                   {isExpanded && (
                     <motion.div
+                      id={groupId}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -202,7 +206,7 @@ export default function NoteGroups({
                             onClick={() => onNoteSelect(note.path)}
                             className={cn(
                               'w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors',
-                              'hover:bg-zinc-800 rounded mx-1',
+                              'hover:bg-zinc-800 rounded mx-1 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-blue-400',
                               isSelected && 'bg-zinc-800 text-blue-400'
                             )}
                             style={{ paddingLeft: '2.5rem' }}
