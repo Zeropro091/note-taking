@@ -1,0 +1,4 @@
+## 2024-05-24 - [CRITICAL] Path Traversal Bypass via Unnormalized Backslashes
+**Vulnerability:** Path traversal filter bypass in `validateNoteId` when handling filenames with unnormalized backslashes (`..\\`). The application relied entirely on POSIX-style path resolution (using forward slashes) and did not explicitly normalize backslashes before validation, allowing an attacker to submit paths like `foo\\..\\..\\etc\\passwd`.
+**Learning:** Checking for traversal payloads (`..`) without first enforcing strict, uniform path formatting creates significant evasion opportunities, particularly when `path.resolve` handles unnormalized input.
+**Prevention:** Always explicitly normalize backslashes to forward slashes before applying validation patterns, and aggressively reject traversal sequences bounding path boundaries using regex `/(^|\/)\.\.(?=\/|$)/` instead of merely `.includes('..')` which rejects valid filenames containing consecutive dots (`my..note`).
