@@ -37,13 +37,18 @@ export default function GraphView({
     return notes.find((n) => n.id === nodeId);
   }, [notes]);
 
+  // Performance optimization: Pre-compute matching nodes in a Set for O(1) lookups
+  // This changes edge filtering time complexity from O(V*E) to O(V+E)
+  const validNodeIds = new Set(
+    graph.nodes
+      .filter((node) => !filterTag || node.tags.includes(filterTag))
+      .map((n) => n.id)
+  );
+
   // Save current graph data before isolation
   const currentData: FGData = {
     nodes: graph.nodes
-      .filter((node) => {
-        if (!filterTag) return true;
-        return node.tags.includes(filterTag);
-      })
+      .filter((node) => validNodeIds.has(node.id))
       .map((node) => ({
         id: node.id,
         name: node.label,
@@ -53,11 +58,8 @@ export default function GraphView({
     links: graph.edges
       .filter((edge) => {
         if (!filterTag) return true;
-        const sourceNode = graph.nodes.find((n) => n.id === edge.source);
-        const targetNode = graph.nodes.find((n) => n.id === edge.target);
-        return (
-          sourceNode?.tags.includes(filterTag) || targetNode?.tags.includes(filterTag)
-        );
+        // Fast O(1) lookup using Set instead of Array.find()
+        return validNodeIds.has(edge.source) || validNodeIds.has(edge.target);
       })
       .map((edge) => ({
         source: edge.source,
