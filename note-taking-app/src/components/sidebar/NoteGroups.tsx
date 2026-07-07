@@ -137,8 +137,9 @@ export default function NoteGroups({
             {allTags.slice(0, 12).map(({ tag, count }) => (
               <span
                 key={tag}
-                className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 transition-colors cursor-pointer"
+                className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400"
                 title={`${count} note${count > 1 ? 's' : ''}`}
+                aria-label={`Tag ${tag}`}
               >
                 {tag}
               </span>
@@ -165,10 +166,12 @@ export default function NoteGroups({
                 <button
                   onClick={() => toggleGroup(group.name)}
                   className={cn(
-                    'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors',
+                    'w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-blue-400',
                     'hover:bg-zinc-800 rounded mx-1'
                   )}
                   style={{ borderLeft: `3px solid ${group.color}` }}
+                  aria-expanded={isExpanded}
+                  aria-controls={`group-${group.name.replace(/\s+/g, '-')}`}
                 >
                   {isExpanded ? (
                     <ChevronDown className="w-4 h-4 text-zinc-500 flex-shrink-0" />
@@ -188,6 +191,7 @@ export default function NoteGroups({
                 <AnimatePresence initial={false}>
                   {isExpanded && (
                     <motion.div
+                      id={`group-${group.name.replace(/\s+/g, '-')}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -201,7 +205,7 @@ export default function NoteGroups({
                             key={note.id}
                             onClick={() => onNoteSelect(note.path)}
                             className={cn(
-                              'w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors',
+                              'w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-blue-400',
                               'hover:bg-zinc-800 rounded mx-1',
                               isSelected && 'bg-zinc-800 text-blue-400'
                             )}
