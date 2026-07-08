@@ -1,0 +1,4 @@
+## 2024-07-08 - Path Traversal Vulnerability Bypass via Unnormalized Backslashes
+**Vulnerability:** A path traversal vulnerability existed in `validateNoteId` where POSIX bypass was possible because backslashes were not normalized before `path.resolve`, allowing payloads like `..\\..\\` to pass validation on Unix systems before being converted to forward slashes in `sanitizeNoteId`.
+**Learning:** Validation functions must process data in the exact same format that will be used by the consumer. Validating raw input before normalizations (like slash conversion) creates a discrepancy that attackers can exploit.
+**Prevention:** Always normalize input (e.g., converting `\\` to `/`) BEFORE applying security validations like `path.resolve` or regex checks. Additionally, explicitly block directory traversal patterns like `/(^|\/)\.\.(?=\/|$)/` as a defense-in-depth measure.
